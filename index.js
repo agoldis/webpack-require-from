@@ -1,10 +1,10 @@
 'use strict'
 
-class MyPlugin {
+class WebpackRequireFrom {
   constructor (userOptions) {
-    this.options = Object.assign({}, MyPlugin.defaultOptions, userOptions)
+    this.options = Object.assign({}, WebpackRequireFrom.defaultOptions, userOptions)
     if (this.options.methodName && this.options.path) {
-      throw new Error('MyPlugin: Specify either "methodName" or "path"')
+      throw new Error('WebpackRequireFrom: Specify either "methodName" or "path"')
     }
   }
 
@@ -41,11 +41,11 @@ class MyPlugin {
       } else if (_config.path) {
         getterBody = this.buildStringCode(_config.path)
       } else {
-        throw new Error('MyPlugin cannot determine how to replace require.ensure')
+        throw new Error('WebpackRequireFrom cannot determine what method to use')
       }
       return [
         source,
-        '// MyPlugin',
+        '// WebpackRequireFrom',
         'Object.defineProperty(' + compilation.mainTemplate.requireFn + ', "p", {',
         '  get: function () {',
         getterBody,
@@ -56,6 +56,6 @@ class MyPlugin {
   }
 }
 
-MyPlugin.defaultOptions = {}
+WebpackRequireFrom.defaultOptions = {}
 
-module.exports = MyPlugin;
+module.exports = WebpackRequireFrom;
