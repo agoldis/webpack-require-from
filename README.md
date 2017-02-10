@@ -28,4 +28,4 @@ The configuration object may have either of the options:
 * `path` - set static path for loading chunks
 * `methodName` - set method name that will be invoked at runtime, the method should return a path / URL that chunks will be loaded from. __NOTE__, that the method should be defined in a global namespace and should be defined before `require.ensure` is invoked.
 
-If not options provided, the default `config.output.publicPath` will be used.
+If no options provided, the default `config.output.publicPath` will be used.
