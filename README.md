@@ -7,6 +7,7 @@ Webpack allows to split code using `require.ensure` in to several chunks, which 
 Sometime the source for loading chunks needs to be changed, for example:
 * Chunks are hosted at a CDN
 * Different environments use different URLs for loading assets (production, staging, qa)
+* Your `index` file is served from a different location / port
 
 # How to use
 ```javascript
