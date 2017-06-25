@@ -49,7 +49,7 @@ The value / return value of the variable / method defines the URL that will be u
 For example, in the very first line of you bundle:
 ```javascript
 const window.__cdnJSPath = function () {
- // return URL bases on your applicaion logic
+ // return URL based on your application logic
 }
 ```
 
