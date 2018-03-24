@@ -14,7 +14,7 @@ module.exports = {
   },
   plugins: [
     new WebpackRequireFrom({
-      methodName: "__cdnUrl"
+      path: "specialPath"
     })
   ]
 };

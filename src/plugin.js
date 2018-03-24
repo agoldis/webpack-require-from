@@ -27,7 +27,7 @@ class WebpackRequireFrom {
     return [
       "try {",
       `  if (typeof ${methodName} !== "function") {`,
-      `    throw new Error("${PLUGIN_NAME}: ${methodName} is not a function or not available at runtime. See https://github.com/agoldis/webpack-require-from#Troubleshooting");`,
+      `    throw new Error("${PLUGIN_NAME}: ${methodName} is not a function or not available at runtime. See https://github.com/agoldis/webpack-require-from#troubleshooting");`,
       "  }",
       `  return ${methodName}();`,
       "} catch (e) {",
