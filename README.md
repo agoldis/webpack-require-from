@@ -131,7 +131,7 @@ This simple setup will cause webpack issue request to `http(s)://doman/path/for/
 
 * Make sure your method name in `webpack.config.js` matches the method name you define on global `window` object.
 
-* Make sure the method is define the very first invocation of eithe `require.ensure()` or `import()`
+* Make sure the method is defined **before** the very first invocation of either `require.ensure()` or `import()`
 
 Don't hesitate to open issues.
 
