@@ -1,1 +1,1 @@
-exports.PLUGIN_NAME = "WebpackRequireFrom"
+exports.PLUGIN_NAME = "WebpackRequireFrom";

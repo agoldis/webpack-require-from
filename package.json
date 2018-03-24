@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Webpack plugin for changing the public path of chunks loading at runtime",
   "main": "index.js",
+  "scripts": {
+    "test": "cd ./test/webpack4 && yarn run test && cd ../webpack3 && yarn run test"
+  },
   "repository": "https://github.com/agoldis/webpack-require-from.git",
   "author": "Andrew Goldis",
   "license": "MIT"

@@ -1,0 +1,14 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "clean": "rm -rf build",
+    "build": "yarn run clean && webpack",
+    "test": "echo \"Testing webpack 3\" && yarn run build && node ./testRunner"
+  },
+  "dependencies": {
+    "webpack": "3.11.0"
+  }
+}

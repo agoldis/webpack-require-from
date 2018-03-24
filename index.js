@@ -1,4 +1,4 @@
-'use strict'
-const WebpackRequireFrom = require('./src/plugin');
+"use strict";
+const WebpackRequireFrom = require("./src/plugin");
 
 module.exports = WebpackRequireFrom;
