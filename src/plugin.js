@@ -35,7 +35,7 @@ class WebpackRequireFrom {
   }
 
   activateReplaceSrc(mainTemplate) {
-    if (!mainTemplate.hooks.jsonpScript) {
+    if (!getHookMethod(mainTemplate, "jsonp-script")) {
       mainTemplate.hooks.jsonpScript = new SyncWaterfallHook([
         "source",
         "chunk",
