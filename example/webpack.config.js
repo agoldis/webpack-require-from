@@ -1,9 +1,11 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const RequireFrom = require('../');
+const path = require('path');
 
 module.exports = {
 	"output": {
-		"filename": "main.js"
+		"filename": "main.js",
+		"path": path.resolve(__dirname, 'dist/')
 	},
 	"entry": "./index.js",
 	// "mode": "development",
