@@ -1,0 +1,12 @@
+webpackJsonp([0],[
+/* 0 */
+/***/ (function(module, exports) {
+
+exports.run = function () {
+	console.log('b');
+}
+
+
+
+/***/ })
+]);
