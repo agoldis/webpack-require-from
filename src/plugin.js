@@ -1,5 +1,11 @@
-const { PLUGIN_NAME } = require("./constants");
+const { PLUGIN_NAME, REPLACE_SRC_OPTION_NAME } = require("./constants");
 const { getHookMethod } = require("./helpers");
+const { SyncWaterfallHook } = require("tapable");
+const {
+  buildSrcReplaceCode,
+  buildMethodCode,
+  buildStringCode
+} = require("./codeBuilders");
 
 class WebpackRequireFrom {
   constructor(userOptions) {
@@ -8,9 +14,10 @@ class WebpackRequireFrom {
       WebpackRequireFrom.defaultOptions,
       userOptions
     );
+
     if (this.options.methodName && this.options.path) {
       throw new Error(
-        `${PLUGIN_NAME}: Specify either "methodName" or "path". See https://github.com/agoldis/webpack-require-from#configuration`
+        `${PLUGIN_NAME}: Specify either "methodName" or "path", not together. See https://github.com/agoldis/webpack-require-from#configuration`
       );
     }
   }
@@ -19,61 +26,56 @@ class WebpackRequireFrom {
     getHookMethod(compiler, "compilation")(this.compilationHook.bind(this));
   }
 
-  buildStringCode(pathString) {
-    return `return "${pathString}";`;
+  compilationHook({ mainTemplate }) {
+    this.activateReplacePublicPath(mainTemplate);
+
+    if (this.options[REPLACE_SRC_OPTION_NAME]) {
+      this.activateReplaceSrc(mainTemplate);
+    }
   }
 
-  buildMethodCode(methodName, defaultPublicPath) {
-    return [
-      "try {",
-      `  if (typeof ${methodName} !== "function") {`,
-      `    throw new Error("${PLUGIN_NAME}: ${methodName} is not a function or not available at runtime. See https://github.com/agoldis/webpack-require-from#troubleshooting");`,
-      "  }",
-      `  return ${methodName}();`,
-      "} catch (e) {",
-      "  console.error(e);",
-      `  return "${defaultPublicPath}";`,
-      "}"
-    ].join("\n");
+  activateReplaceSrc(mainTemplate) {
+    if (!mainTemplate.hooks.jsonpScript) {
+      mainTemplate.hooks.jsonpScript = new SyncWaterfallHook([
+        "source",
+        "chunk",
+        "hash"
+      ]);
+    }
+
+    getHookMethod(mainTemplate, "jsonp-script")(source => [
+      source,
+      `script.src = (${buildSrcReplaceCode(
+        this.options[REPLACE_SRC_OPTION_NAME]
+      )})(script.src);`
+    ]);
   }
 
-  compilationHook(compilation, params) {
-    getHookMethod(compilation.mainTemplate, "require-extensions")(
-      (source, chunk, hash) => {
-        const defaultPublicPath = compilation.mainTemplate.getPublicPath({
-          hash
-        });
-        const _config = Object.assign(
-          { path: defaultPublicPath },
-          this.options
-        );
-        let getterBody;
+  activateReplacePublicPath(mainTemplate) {
+    getHookMethod(mainTemplate, "require-extensions")((source, chunk, hash) => {
+      const defaultPublicPath = mainTemplate.getPublicPath({
+        hash
+      });
 
-        if (_config.methodName) {
-          getterBody = this.buildMethodCode(
-            _config.methodName,
-            defaultPublicPath
-          );
-        } else if (_config.path) {
-          getterBody = this.buildStringCode(_config.path);
-        } else {
-          throw new Error(
-            `${PLUGIN_NAME}: cannot determine what method to use. See https://github.com/agoldis/webpack-require-from#configuration`
-          );
-        }
-        return [
-          source,
-          `// ${PLUGIN_NAME}`,
-          "Object.defineProperty(" +
-            compilation.mainTemplate.requireFn +
-            ', "p", {',
-          "  get: function () {",
-          getterBody,
-          " }",
-          "})"
-        ].join("\n");
+      const _config = Object.assign({ path: defaultPublicPath }, this.options);
+
+      let getterBody;
+      if (_config.methodName) {
+        getterBody = buildMethodCode(_config.methodName, defaultPublicPath);
+      } else if (_config.path) {
+        getterBody = buildStringCode(_config.path);
       }
-    );
+
+      return [
+        source,
+        `// ${PLUGIN_NAME}`,
+        "Object.defineProperty(" + mainTemplate.requireFn + ', "p", {',
+        "  get: function () {",
+        getterBody,
+        " }",
+        "})"
+      ].join("\n");
+    });
   }
 }
 
