@@ -48,7 +48,7 @@ class WebpackRequireFrom {
       `script.src = (${buildSrcReplaceCode(
         this.options[REPLACE_SRC_OPTION_NAME]
       )})(script.src);`
-    ]);
+    ].join("\n"));
   }
 
   activateReplacePublicPath(mainTemplate) {
