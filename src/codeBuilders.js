@@ -33,7 +33,7 @@ exports.buildMethodCode = function(methodName, defaultPublicPath) {
     `  return ${methodName}();`,
     "} catch (e) {",
     "  console.error(e);",
-    `  return "${defaultPublicPath}";`,
+    `  return "${defaultPublicPath.replace(/\\/g, "\\\\")}";`,
     "}"
   ].join("\n");
 };
