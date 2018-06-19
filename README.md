@@ -1,3 +1,5 @@
+[![npm version](https://badge.fury.io/js/webpack-require-from.svg)](https://badge.fury.io/js/webpack-require-from)
+[![CircleCI](https://circleci.com/gh/agoldis/webpack-require-from.svg?style=svg)](https://circleci.com/gh/agoldis/webpack-require-from)
 # webpack-require-from
 Webpack plugin that allows to configure the path / URL for fetching dynamic imports
 

@@ -4,7 +4,10 @@
   "description": "Webpack plugin that allows to configure path or URL for fetching dynamic imports",
   "main": "index.js",
   "scripts": {
-    "test": "cd ./test/webpack4 && yarn && yarn run test && cd ../webpack3 && yarn && yarn run test"
+    "test-webpack2": "cd ./test/webpack2 && yarn && yarn run test && cd ..",
+    "test-webpack3": "cd ./test/webpack3 && yarn && yarn run test && cd ..",
+    "test-webpack4": "cd ./test/webpack4 && yarn && yarn run test && cd ..",
+    "test": "yarn run test-webpack4 && yarn run test-webpack3 && yarn run test-webpack2"
   },
   "peerDependencies": {
     "tapable": "^1.0.0"
