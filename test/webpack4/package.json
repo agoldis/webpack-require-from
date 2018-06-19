@@ -1,15 +1,15 @@
 {
   "name": "test",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "../common/index.js",
   "license": "MIT",
   "scripts": {
-    "clean": "rm -rf build",
-    "build": "yarn run clean && webpack",
-    "test": "echo \"Testing webpack 4\" && yarn run build && node ./testRunner"
+    "clean": "rm -rf build && rm -rf node_modules",
+    "build": "yarn run clean && yarn && webpack --config ./webpack.config.js",
+    "test": "echo \"Testing webpack 4\" && yarn run build && node ../common/testRunner.js webpack4"
   },
   "dependencies": {
-    "webpack": "^4.2.0",
-    "webpack-cli": "^2.0.13"
+    "webpack": "^4.x.x",
+    "webpack-cli": "^3.x.x"
   }
 }

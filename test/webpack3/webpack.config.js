@@ -1,19 +1,2 @@
-const path = require("path");
-const WebpackRequireFrom = require("../../");
-
-module.exports = {
-  entry: {
-    main: "./index.js"
-  },
-  output: {
-    filename: "[name].js",
-    chunkFilename: "[name].js",
-    publicPath: path.resolve("./build"),
-    path: path.resolve("./build")
-  },
-  plugins: [
-    new WebpackRequireFrom({
-      methodName: "__cdnUrl"
-    })
-  ]
-};
+const config = require("../common/webpack.config.shared");
+module.exports = config.webpack3;
