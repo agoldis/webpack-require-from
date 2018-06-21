@@ -1,27 +1,70 @@
 const path = require("path");
 const WebpackRequireFrom = require("../../");
 
+const pluginConfList = {
+  empty_pluginConf: {
+    plugins: [new WebpackRequireFrom()]
+  },
+  emptyObject_pluginConf: {
+    plugins: [new WebpackRequireFrom({})]
+  },
+  path_pluginConf: {
+    plugins: [
+      new WebpackRequireFrom({
+        path: "staticPath/"
+      })
+    ]
+  },
+  methodName_pluginConf: {
+    plugins: [
+      new WebpackRequireFrom({
+        methodName: "getPublicPath"
+      })
+    ]
+  },
+  replaceSrcMethodName_pluginConf: {
+    plugins: [
+      new WebpackRequireFrom({
+        replaceSrcMethodName: "getSrc"
+      })
+    ]
+  },
+  replaceSrcMethodName_methodName_pluginConf: {
+    plugins: [
+      new WebpackRequireFrom({
+        methodName: "getPublicPath",
+        replaceSrcMethodName: "getSrc"
+      })
+    ]
+  },
+  replaceSrcMethodName_path_pluginConf: {
+    plugins: [
+      new WebpackRequireFrom({
+        path: "staticPath/",
+        replaceSrcMethodName: "getSrc"
+      })
+    ]
+  }
+};
+
 const defaultConf = {
   entry: {
-    main: "../common/index.js"
+    main: "./test/common/index.js"
   },
-  // stats: "minimal",
   output: {
     filename: "[name].js",
     chunkFilename: "[name].js",
-    publicPath: "wrongPath",
-    path: path.resolve("./build")
-  },
-  plugins: [
-    new WebpackRequireFrom({
-      methodName: "__cdnUrl"
-    })
-  ]
+    publicPath: "originalPublicPath/",
+    path: path.resolve("/build")
+  }
 }
-exports.webpack2 = defaultConf;
-exports.webpack3 = defaultConf;
-exports.webpack4 = Object.assign({}, defaultConf, { mode: "development" })
 
-exports.webpack4static = Object.assign({}, defaultConf, { mode: "development", plugins: [
-  new WebpackRequireFrom({ path: "staticPath" })
-]})
+exports.webpack4 = {};
+exports.webpack3 = {};
+exports.webpack2 = {};
+
+Object.entries(pluginConfList).map(([configName, configValue]) => {
+  exports.webpack4[configName] = Object.assign({}, defaultConf, configValue, {mode: "development"})
+  exports.webpack3[configName] = Object.assign({}, defaultConf, configValue)
+  exports.webpack2[configName] = Object.assign({}, defaultConf, configValue)
+})

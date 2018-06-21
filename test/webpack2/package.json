@@ -4,9 +4,7 @@
   "main": "../common/index.js",
   "license": "MIT",
   "scripts": {
-    "clean": "rm -rf build && rm -rf node_modules",
-    "build": "yarn run clean && yarn && webpack",
-    "test": "echo \"Testing webpack 2\" && yarn run build && node ../common/testRunner.js webpack2"
+    "build": "echo \"Building webpack 2\" && yarn"
   },
   "dependencies": {
     "webpack": "^2.x.x"
