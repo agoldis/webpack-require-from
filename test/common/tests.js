@@ -67,6 +67,14 @@ describe("webpack-require-from", function () {
         await compileWithWebpackVersion(webpackVersion, "methodName_pluginConf");
         global.getPublicPath = undefined;
       }),
+      it("uses default public path when methodName is undefined", async () => {
+        let originalConsoleError = console.error;
+        console.error = () => {}
+        global.getPublicPath = undefined;
+        appendChildTrap = ({src}) => assert.strictEqual(src.split("/")[0], "originalPublicPath");
+        await compileWithWebpackVersion(webpackVersion, "methodName_pluginConf");
+        console.error = originalConsoleError;
+      }),
       it("replaces with result of replaceSrcMethodName", async () => {
         global.getSrc = (original) => `newSrc/${original}`
         appendChildTrap = ({src}) => {
@@ -75,6 +83,27 @@ describe("webpack-require-from", function () {
         }
         await compileWithWebpackVersion(webpackVersion, "replaceSrcMethodName_pluginConf");
         global.getSrc = undefined;
+      }),
+      it("uses default public path when replaceSrcMethodName doesn't return a string", async () => {
+        let originalConsoleError = console.error;
+        console.error = () => {}
+        global.getSrc = (original) => null
+        appendChildTrap = ({src}) => {
+          assert.strictEqual(src.split("/")[0], "originalPublicPath");
+        }
+        await compileWithWebpackVersion(webpackVersion, "replaceSrcMethodName_pluginConf");
+        global.getSrc = undefined;
+        console.error = originalConsoleError;
+      }),
+      it("uses default public  path when replaceSrcMethodName is undefined", async () => {
+        let originalConsoleError = console.error;
+        console.error = () => {}
+        global.getSrc = undefined;
+        appendChildTrap = ({src}) => {
+          assert.strictEqual(src.split("/")[0], "originalPublicPath");
+        }
+        await compileWithWebpackVersion(webpackVersion, "replaceSrcMethodName_pluginConf");
+        console.error = originalConsoleError;
       }),
       it("replaces with result of methodName > replaceSrcMethodName", async () => {
         global.getPublicPath = () => 'newPublicPath/'
