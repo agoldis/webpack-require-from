@@ -26,7 +26,7 @@ const compile = (webpackEngine, config, fs) => {
       if (err || stats.hasErrors()) {
         reject(new Error(err || stats.compilation.errors));
       }
-      eval(fs.readFileSync("/build/main.js").toString());
+      eval(fs.readFileSync(`${webpackConfigurations.buildPath}/main.js`).toString());
       resolve();
     })
   })

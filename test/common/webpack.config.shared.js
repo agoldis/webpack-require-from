@@ -47,6 +47,8 @@ const pluginConfList = {
   }
 };
 
+exports.buildPath = path.resolve("build")
+
 const defaultConf = {
   entry: {
     main: "./test/common/index.js"
@@ -55,7 +57,7 @@ const defaultConf = {
     filename: "[name].js",
     chunkFilename: "[name].js",
     publicPath: "originalPublicPath/",
-    path: path.resolve("/build")
+    path: exports.buildPath
   }
 }
 
