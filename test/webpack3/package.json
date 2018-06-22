@@ -7,6 +7,7 @@
     "build": "echo \"Building webpack 3\" && yarn"
   },
   "dependencies": {
+    "html-webpack-plugin": "^3.2.0",
     "webpack": "^3.x.x"
   }
 }

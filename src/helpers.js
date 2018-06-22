@@ -1,4 +1,5 @@
 const { PLUGIN_NAME } = require("./constants");
+const { SyncWaterfallHook } = require("tapable");
 
 function capitalizeFirstLetter(string) {
   return string.charAt(0).toUpperCase() + string.slice(1);
@@ -13,12 +14,21 @@ function dashToCamelCase(value) {
   return cameled.join("");
 }
 
-exports.getHookMethod = function(tapable, hookName) {
+exports.getOrSetHookMethod = function(tapable, hookName) {
   if (tapable.plugin && tapable.plugin.name !== "deprecated") {
     // webpack < 4
     return tapable.plugin.bind(tapable, [hookName]);
   }
   const newHookName = dashToCamelCase(hookName);
+
+  if (!tapable.hooks[newHookName]) {
+    tapable.hooks.jsonpScript = new SyncWaterfallHook([
+      "source",
+      "chunk",
+      "hash"
+    ]);
+  }
+
   return tapable.hooks[newHookName].tap.bind(
     tapable.hooks[newHookName],
     PLUGIN_NAME

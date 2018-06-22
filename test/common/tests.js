@@ -26,8 +26,7 @@ const compile = (webpackEngine, config, fs) => {
       if (err || stats.hasErrors()) {
         reject(new Error(err || stats.compilation.errors));
       }
-      const code = fs.readFileSync(`${webpackConfigurations.buildPath}/main.js`).toString();
-      eval(code);
+      eval(fs.readFileSync(`${webpackConfigurations.buildPath}/main.js`).toString());
       resolve();
     })
   })
@@ -39,6 +38,17 @@ const compileWithWebpackVersion = (webpackVersion, configName) => compile(
   new memoryFS()
 )
 
+/*
+Each test:
+- resets micro-browser environment (beforeEach)
+- defines global method the produce expected results 
+- defines traps to check the output (by overriding HTML element attachChild method and checking src)
+- retrevies webpack config
+- optionally the modifies the default to create a good test case config 
+- compiles and evaluates the output of compilation
+- asserts test case in the trap function
+- cleans up
+*/
 describe("webpack-require-from", function () {
   beforeEach(() => createGlobalEnv());
 
@@ -141,6 +151,44 @@ describe("webpack-require-from", function () {
         }
         await compileWithWebpackVersion(webpackVersion, "replaceSrcMethodName_path_pluginConf");
         global.getSrc = global.getPublicPath = undefined;
+      }),
+      it("replaces with result of methodName together with HTMLWebPack plugin", async () => {
+        global.getPublicPath = () => 'newPublicPath/'
+
+        appendChildTrap = ({src}) => {
+          assert.strictEqual(src.split("/")[0], "newPublicPath");
+        }
+
+        // html-webpack-plugn requires webpack (and embedded mplugins) relatively to its location
+        const htmlWebpackPlugin= require(`../${webpackVersion}/node_modules/html-webpack-plugin/`)
+        const config = cloneDeep(webpackConfigurations[webpackVersion]["methodName_pluginConf"]);
+        config.plugins.unshift(new htmlWebpackPlugin());
+
+        await compile(
+          require(`../${webpackVersion}/node_modules/webpack`),
+          config,
+          new memoryFS()
+        )
+        global.getPublicPath = undefined;
+      }),
+      it("replaces with result of replaceSrcMethodName together with HTMLWebPack plugin", async () => {
+        global.getSrc = (original) => `newSrc/${original}`
+
+        appendChildTrap = ({src}) => {
+          assert.strictEqual(src.split("/")[0], "newSrc");
+        }
+
+        // html-webpack-plugn requires webpack (and embedded mplugins) relatively to its location
+        const htmlWebpackPlugin= require(`../${webpackVersion}/node_modules/html-webpack-plugin/`)
+        const config = cloneDeep(webpackConfigurations[webpackVersion]["replaceSrcMethodName_pluginConf"]);
+        config.plugins.unshift(new htmlWebpackPlugin());
+
+        await compile(
+          require(`../${webpackVersion}/node_modules/webpack`),
+          config,
+          new memoryFS()
+        )
+        global.getSrc = undefined;
       })
     ]
   )

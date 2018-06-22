@@ -1,6 +1,5 @@
 const { PLUGIN_NAME, REPLACE_SRC_OPTION_NAME } = require("./constants");
-const { getHookMethod } = require("./helpers");
-const { SyncWaterfallHook } = require("tapable");
+const { getOrSetHookMethod } = require("./helpers");
 const {
   buildSrcReplaceCode,
   buildMethodCode,
@@ -23,7 +22,7 @@ class WebpackRequireFrom {
   }
 
   apply(compiler) {
-    getHookMethod(compiler, "compilation")(this.compilationHook.bind(this));
+    getOrSetHookMethod(compiler, "compilation")(this.compilationHook.bind(this));
   }
 
   compilationHook({ mainTemplate }) {
@@ -35,15 +34,7 @@ class WebpackRequireFrom {
   }
 
   activateReplaceSrc(mainTemplate) {
-    if (!getHookMethod(mainTemplate, "jsonp-script")) {
-      mainTemplate.hooks.jsonpScript = new SyncWaterfallHook([
-        "source",
-        "chunk",
-        "hash"
-      ]);
-    }
-
-    getHookMethod(mainTemplate, "jsonp-script")(source => [
+    getOrSetHookMethod(mainTemplate, "jsonp-script")(source => [
       source,
       `script.src = (${buildSrcReplaceCode(
         this.options[REPLACE_SRC_OPTION_NAME]
@@ -52,7 +43,7 @@ class WebpackRequireFrom {
   }
 
   activateReplacePublicPath(mainTemplate) {
-    getHookMethod(mainTemplate, "require-extensions")((source, chunk, hash) => {
+    getOrSetHookMethod(mainTemplate, "require-extensions")((source, chunk, hash) => {
       const defaultPublicPath = mainTemplate.getPublicPath({
         hash
       });
