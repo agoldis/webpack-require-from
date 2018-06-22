@@ -26,7 +26,8 @@ const compile = (webpackEngine, config, fs) => {
       if (err || stats.hasErrors()) {
         reject(new Error(err || stats.compilation.errors));
       }
-      eval(fs.readFileSync(`${webpackConfigurations.buildPath}/main.js`).toString());
+      const code = fs.readFileSync(`${webpackConfigurations.buildPath}/main.js`).toString();
+      eval(code);
       resolve();
     })
   })
@@ -75,6 +76,23 @@ describe("webpack-require-from", function () {
         await compileWithWebpackVersion(webpackVersion, "methodName_pluginConf");
         console.error = originalConsoleError;
       }),
+      it("uses default windows public path when methodName is undefined", async () => {
+        let originalConsoleError = console.error;
+        console.error = () => {}
+        global.getPublicPath = undefined;
+
+        const config = cloneDeep(webpackConfigurations[webpackVersion]["methodName_pluginConf"]);
+        config.output.publicPath = "C:\\windows\\path\\"
+
+        appendChildTrap = ({src}) => assert.ok(src.match(/C:\\windows\\path\\.*/));
+
+        await compile(
+          require(`../${webpackVersion}/node_modules/webpack`),
+          config,
+          new memoryFS()
+        )
+        console.error = originalConsoleError;
+      }),
       it("replaces with result of replaceSrcMethodName", async () => {
         global.getSrc = (original) => `newSrc/${original}`
         appendChildTrap = ({src}) => {
@@ -95,7 +113,7 @@ describe("webpack-require-from", function () {
         global.getSrc = undefined;
         console.error = originalConsoleError;
       }),
-      it("uses default public  path when replaceSrcMethodName is undefined", async () => {
+      it("uses default public path when replaceSrcMethodName is undefined", async () => {
         let originalConsoleError = console.error;
         console.error = () => {}
         global.getSrc = undefined;
