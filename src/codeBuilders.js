@@ -1,6 +1,6 @@
 const { PLUGIN_NAME } = require("./constants");
 
-exports.buildSrcReplaceCode = function(methodName) {
+exports.buildSrcReplaceCode = function(methodName, shouldSupressErrors = false) {
   return [
     "function(originalSrc) {",
     "try {",
@@ -13,7 +13,9 @@ exports.buildSrcReplaceCode = function(methodName) {
     "  }",
     "  return newSrc;",
     "} catch (e) {",
-    "  console.error(e);",
+    `  if (!${shouldSupressErrors}) {`,
+    "    console.error(e);",
+    "  }",
     `  return originalSrc;`,
     "}",
     "}"
@@ -24,7 +26,7 @@ exports.buildStringCode = function(pathString) {
   return `return "${pathString}";`;
 };
 
-exports.buildMethodCode = function(methodName, defaultPublicPath) {
+exports.buildMethodCode = function(methodName, defaultPublicPath, shouldSupressErrors = false) {
   return [
     "try {",
     `  if (typeof ${methodName} !== "function") {`,
@@ -32,7 +34,9 @@ exports.buildMethodCode = function(methodName, defaultPublicPath) {
     "  }",
     `  return ${methodName}();`,
     "} catch (e) {",
-    "  console.error(e);",
+    `  if (!${shouldSupressErrors}) {`,
+    "    console.error(e);",
+    "  }",
     `  return "${defaultPublicPath.replace(/\\/g, "\\\\")}";`,
     "}"
   ].join("\n");

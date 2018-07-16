@@ -1,4 +1,4 @@
-const { PLUGIN_NAME, REPLACE_SRC_OPTION_NAME } = require("./constants");
+const { PLUGIN_NAME, REPLACE_SRC_OPTION_NAME, SUPRESS_ERRORS_OPTION_NAME } = require("./constants");
 const { getOrSetHookMethod } = require("./helpers");
 const {
   buildSrcReplaceCode,
@@ -37,7 +37,8 @@ class WebpackRequireFrom {
     getOrSetHookMethod(mainTemplate, "jsonp-script")(source => [
       source,
       `script.src = (${buildSrcReplaceCode(
-        this.options[REPLACE_SRC_OPTION_NAME]
+        this.options[REPLACE_SRC_OPTION_NAME],
+        this.options[SUPRESS_ERRORS_OPTION_NAME]
       )})(script.src);`
     ].join("\n"));
   }
@@ -52,7 +53,7 @@ class WebpackRequireFrom {
 
       let getterBody;
       if (_config.methodName) {
-        getterBody = buildMethodCode(_config.methodName, defaultPublicPath);
+        getterBody = buildMethodCode(_config.methodName, defaultPublicPath, this.options[SUPRESS_ERRORS_OPTION_NAME]);
       } else if (_config.path) {
         getterBody = buildStringCode(_config.path);
       }
@@ -70,6 +71,8 @@ class WebpackRequireFrom {
   }
 }
 
-WebpackRequireFrom.prototype.defaultOptions = {};
+WebpackRequireFrom.prototype.defaultOptions = {
+  [SUPRESS_ERRORS_OPTION_NAME]: false
+};
 
 module.exports = WebpackRequireFrom;

@@ -85,6 +85,9 @@ If used together with `methodName`, chunks URL will be first modified by `window
 
 > __NOTE__ that the method should be defined in a global namespace and should be defined before `require.ensure` or `import()` is invoked.
 
+## `supressErrors (default: false)`
+The plugin will invoke `console.error` when the method name you defined in `replaceSrcMethodName` or `methodName` cannot be detected. Turning this option on will supress the error messages.
+
 ## Defining gobaly available methods
 
 When your JS code is executed in browser, the methods whose names you mention as `methodName` or `replaceSrcMethodName` value, should be set __before__ the first call to `require.ensure()` or `import()` is executed.
