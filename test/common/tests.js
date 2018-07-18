@@ -198,7 +198,7 @@ describe("webpack-require-from", function () {
         )
         global.getSrc = undefined;
       }),
-      it("supresses errors when methodName is undefined", async () => {
+      it("suppresses errors when methodName is undefined", async () => {
         const originalConsoleError = console.error;
 
         let errorCalled = false;
@@ -207,8 +207,8 @@ describe("webpack-require-from", function () {
         global.getPublicPath = undefined;
         appendChildTrap = () => {}
 
-        const config = cloneDeep(webpackConfigurations[webpackVersion]["methodName_pluginConf"]);
-        config.plugins[0].options.supressErrors = true;
+        const config = cloneDeep(webpackConfigurations[webpackVersion].default);
+        config.plugins= [new WebpackRequireFrom({ suppressErrors: true, replaceSrcMethodName: "getPublicPath" })]
 
         await compile(
           require(`../${webpackVersion}/node_modules/webpack`),
@@ -219,7 +219,7 @@ describe("webpack-require-from", function () {
         assert.strictEqual(errorCalled, false);
         console.error = originalConsoleError;
       }),
-      it("supresses errors when replaceSrcMethodName is undefined", async () => {
+      it("suppresses errors when replaceSrcMethodName is undefined", async () => {
         const originalConsoleError = console.error;
         let errorCalled = false;
         console.error = (err) => { errorCalled = true; }
@@ -227,8 +227,8 @@ describe("webpack-require-from", function () {
         global.getSrc = undefined;
         appendChildTrap = () => {}
 
-        const config = cloneDeep(webpackConfigurations[webpackVersion]["replaceSrcMethodName_pluginConf"]);
-        config.plugins[0].options.supressErrors = true;
+        const config = cloneDeep(webpackConfigurations[webpackVersion].default);
+        config.plugins= [new WebpackRequireFrom({ supressErrors: true, replaceSrcMethodName: "getSrc" })]
         await compile(
           require(`../${webpackVersion}/node_modules/webpack`),
           config,

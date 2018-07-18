@@ -1,4 +1,4 @@
-const { PLUGIN_NAME, REPLACE_SRC_OPTION_NAME, SUPRESS_ERRORS_OPTION_NAME } = require("./constants");
+const { PLUGIN_NAME, REPLACE_SRC_OPTION_NAME, SUPPRESS_ERRORS_OPTION_NAME } = require("./constants");
 const { getOrSetHookMethod } = require("./helpers");
 const {
   buildSrcReplaceCode,
@@ -8,6 +8,12 @@ const {
 
 class WebpackRequireFrom {
   constructor(userOptions) {
+
+    // temp fix to support typo in option name
+    if (userOptions && typeof userOptions.supressErrors !== 'undefined') {
+      userOptions[SUPPRESS_ERRORS_OPTION_NAME] = userOptions.supressErrors;
+    }
+
     this.options = Object.assign(
       {},
       WebpackRequireFrom.defaultOptions,
@@ -38,7 +44,7 @@ class WebpackRequireFrom {
       source,
       `script.src = (${buildSrcReplaceCode(
         this.options[REPLACE_SRC_OPTION_NAME],
-        this.options[SUPRESS_ERRORS_OPTION_NAME]
+        this.options[SUPPRESS_ERRORS_OPTION_NAME]
       )})(script.src);`
     ].join("\n"));
   }
@@ -53,7 +59,7 @@ class WebpackRequireFrom {
 
       let getterBody;
       if (_config.methodName) {
-        getterBody = buildMethodCode(_config.methodName, defaultPublicPath, this.options[SUPRESS_ERRORS_OPTION_NAME]);
+        getterBody = buildMethodCode(_config.methodName, defaultPublicPath, this.options[SUPPRESS_ERRORS_OPTION_NAME]);
       } else if (_config.path) {
         getterBody = buildStringCode(_config.path);
       }
@@ -72,7 +78,6 @@ class WebpackRequireFrom {
 }
 
 WebpackRequireFrom.prototype.defaultOptions = {
-  [SUPRESS_ERRORS_OPTION_NAME]: false
 };
 
 module.exports = WebpackRequireFrom;

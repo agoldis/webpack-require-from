@@ -2,6 +2,7 @@ const path = require("path");
 const WebpackRequireFrom = require("../../");
 
 const pluginConfList = {
+  default: {},
   empty_pluginConf: {
     plugins: [new WebpackRequireFrom()]
   },
@@ -49,7 +50,7 @@ const pluginConfList = {
 
 exports.buildPath = path.resolve("build")
 
-const defaultConf = {
+const baseConf = {
   entry: {
     main: "./test/common/index.js"
   },
@@ -66,7 +67,7 @@ exports.webpack3 = {};
 exports.webpack2 = {};
 
 Object.entries(pluginConfList).map(([configName, configValue]) => {
-  exports.webpack4[configName] = Object.assign({}, defaultConf, configValue, {mode: "development"})
-  exports.webpack3[configName] = Object.assign({}, defaultConf, configValue)
-  exports.webpack2[configName] = Object.assign({}, defaultConf, configValue)
+  exports.webpack4[configName] = Object.assign({}, baseConf, configValue, {mode: "development"})
+  exports.webpack3[configName] = Object.assign({}, baseConf, configValue)
+  exports.webpack2[configName] = Object.assign({}, baseConf, configValue)
 })
