@@ -17,10 +17,8 @@
   "repository": "https://github.com/agoldis/webpack-require-from.git",
   "author": "Andrew Goldis",
   "license": "MIT",
-  "dependencies": {
-    "tapable": "^1.0.0"
-  },
   "devDependencies": {
+    "tapable": "^1.0.0",
     "lodash.clonedeep": "^4.5.0",
     "memory-fs": "^0.4.1",
     "mocha": "^5.2.0"
