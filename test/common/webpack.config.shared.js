@@ -23,6 +23,13 @@ const pluginConfList = {
       })
     ]
   },
+  variableName_pluginConf: {
+    plugins: [
+      new WebpackRequireFrom({
+        variableName: "publicPath"
+      })
+    ]
+  },
   replaceSrcMethodName_pluginConf: {
     plugins: [
       new WebpackRequireFrom({
@@ -34,6 +41,14 @@ const pluginConfList = {
     plugins: [
       new WebpackRequireFrom({
         methodName: "getPublicPath",
+        replaceSrcMethodName: "getSrc"
+      })
+    ]
+  },
+  replaceSrcMethodName_variableName_pluginConf: {
+    plugins: [
+      new WebpackRequireFrom({
+        variableName: "publicPath",
         replaceSrcMethodName: "getSrc"
       })
     ]

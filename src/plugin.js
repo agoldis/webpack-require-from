@@ -3,7 +3,8 @@ const { getOrSetHookMethod } = require("./helpers");
 const {
   buildSrcReplaceCode,
   buildMethodCode,
-  buildStringCode
+  buildStringCode,
+  buildVariableCode
 } = require("./codeBuilders");
 
 class WebpackRequireFrom {
@@ -20,9 +21,11 @@ class WebpackRequireFrom {
       userOptions
     );
 
-    if (this.options.methodName && this.options.path) {
+    // `path`, `methodName` and `variableName` are mutualy exclusive and cannot be used together
+    let exclusiveOptionLength = [this.options.methodName, this.options.path, this.options.variableName].filter(_=>_).length;
+    if (exclusiveOptionLength && exclusiveOptionLength !== 1) {
       throw new Error(
-        `${PLUGIN_NAME}: Specify either "methodName" or "path", not together. See https://github.com/agoldis/webpack-require-from#configuration`
+        `${PLUGIN_NAME}: Specify either "methodName", "path" or "variableName", not two or more. See https://github.com/agoldis/webpack-require-from#configuration`
       );
     }
   }
@@ -58,7 +61,9 @@ class WebpackRequireFrom {
       const _config = Object.assign({ path: defaultPublicPath }, this.options);
 
       let getterBody;
-      if (_config.methodName) {
+	  if (_config.variableName) {
+        getterBody = buildVariableCode(_config.variableName, defaultPublicPath, this.options[SUPPRESS_ERRORS_OPTION_NAME]);
+      } else if (_config.methodName) {
         getterBody = buildMethodCode(_config.methodName, defaultPublicPath, this.options[SUPPRESS_ERRORS_OPTION_NAME]);
       } else if (_config.path) {
         getterBody = buildStringCode(_config.path);
