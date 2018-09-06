@@ -41,3 +41,20 @@ exports.buildMethodCode = function(methodName, defaultPublicPath, shouldSupressE
     "}"
   ].join("\n");
 };
+
+
+exports.buildVariableCode = function (variableName, defaultPublicPath, shouldSupressErrors = false) {
+  return [
+    "try {",
+    `  if (typeof ${variableName} !== "string") {`,
+    `    throw new Error("${PLUGIN_NAME}: '${variableName}' is not a string or not available at runtime. See https://github.com/agoldis/webpack-require-from#troubleshooting");`,
+    "  }",
+    `  return ${variableName};`,
+    "} catch (e) {",
+    `  if (!${shouldSupressErrors}) {`,
+    "    console.error(e);",
+    "  }",
+    `  return "${defaultPublicPath.replace(/\\/g, "\\\\")}";`,
+    "}"
+  ].join("\n");
+};
