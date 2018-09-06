@@ -45,7 +45,7 @@ Set path for dynamically loading modules. The value you provide will replace `co
 
 For example, if default URL is `https://localhost`, chunk name is `0.js` and options object is `{path: "customPath/" }`, the chunk will be fetched from `https://localhost/customPath/0.js`
 
-> __NOTE__ `path` and `methodName` are mutualy exclusive and cannot be used together
+> __NOTE__ `path`, `methodName` and `variableName` are mutualy exclusive and cannot be used together
 
 ## `methodName` 
 Name of the globaly defined method that will be invoked at runtime, the method should return a path / URL that will be used for dynamically importing of chunks.
@@ -62,9 +62,18 @@ the chunk will be fetched from  `https://app.cdn.com/buildXXX/0.js`
 
 If used together with `replaceSrcMethodName`, chunks URL will be first modified by `window[methodName]` and then, the modified values are passed as an argument to `window[replaceSrcMethodName]` function.
 
-> __NOTE__ `path` and `methodName` are mutualy exclusive and cannot be used together
+> __NOTE__ `path`, `methodName` and `variableName` are mutualy exclusive and cannot be used together
 
 > __NOTE__ that the method should be defined in a global namespace and should be defined before `require.ensure` or `import()` is invoked. See examples below
+
+## `variableName`
+Just like `methodName`, `variableName` is the globaly defined variable that will be invoked at runtime, the variableName is a string represents a path / URL that will be used for dynamically importing of chunks.
+
+For example, if default URL is `https://localhost`, chunk name is `0.js` and options object is `{variableName: "chunkURL" }`, while `window.chunkURL` is defined to be:
+```javascript
+window.chunkURL = 'https://app.cdn.com/buildXXX/'
+```
+the chunk will be fetched from  `https://app.cdn.com/buildXXX/0.js`
 
 ## `replaceSrcMethodName` 
 Name of the globaly defined method that will be invoked at runtime; the method receives the **full URL** of the dynamically required chunk as its argument and should return a `string` with the new URL.
@@ -81,16 +90,16 @@ window.replaceSrc = function (originalSrc) {
 ```
 the chunks will be fetched from `https://localhost/0.js` and `https://localhost/static.js` 
 
-If used together with `methodName`, chunks URL will be first modified by `window[methodName]` and then, the modified values are passed as an argument to `window[replaceSrcMethodName]` function.
+If used together with `methodName` or `variableName`, chunks URL will be first modified by `window[methodName]` or will be modified to `window[variableName]` and then, the modified values are passed as an argument to `window[replaceSrcMethodName]` function.
 
 > __NOTE__ that the method should be defined in a global namespace and should be defined before `require.ensure` or `import()` is invoked.
 
 ## `suppressErrors (default: false)`
-The plugin will invoke `console.error` when the method name you defined in `replaceSrcMethodName` or `methodName` cannot be detected. Turning this option on will suppress the error messages.
+The plugin will invoke `console.error` when the method name you defined in `replaceSrcMethodName`, `methodName` or `variableName` cannot be detected. Turning this option on will suppress the error messages.
 
-## Defining gobaly available methods
+## Defining gobaly available methods and variable
 
-When your JS code is executed in browser, the methods whose names you mention as `methodName` or `replaceSrcMethodName` value, should be set __before__ the first call to `require.ensure()` or `import()` is executed.
+When your JS code is executed in browser, the variable/methods whose names you mention as `variableName`, `methodName` or `replaceSrcMethodName` value, should be set __before__ the first call to `require.ensure()` or `import()` is executed.
 
 The return value of the methods will be used to build the  URL for fetching resources.
 
