@@ -3,6 +3,11 @@ global.__cdnUrl = function() {
   return "http://customURL.com/";
 };
 
+// setWebpackPublicPath and onTheFlyPublicPath are set in tests.js
+if (setWebpackPublicPath) {
+  __webpack_public_path__ = onTheFlyPublicPath;
+}
+
 require.ensure(["./moduleB"], function(require) {
   const moduleB = require("./moduleB");
   moduleB.run();
