@@ -22,8 +22,8 @@ class WebpackRequireFrom {
     );
 
     // `path`, `methodName` and `variableName` are mutualy exclusive and cannot be used together
-    let exclusiveOptionLength = [this.options.methodName, this.options.path, this.options.variableName].filter(_=>_).length;
-    if (exclusiveOptionLength && exclusiveOptionLength !== 1) {
+    this.exclusiveOptionLength = [this.options.methodName, this.options.path, this.options.variableName].filter(_=>_).length;
+    if (this.exclusiveOptionLength && this.exclusiveOptionLength !== 1) {
       throw new Error(
         `${PLUGIN_NAME}: Specify either "methodName", "path" or "variableName", not two or more. See https://github.com/agoldis/webpack-require-from#configuration`
       );
@@ -35,7 +35,10 @@ class WebpackRequireFrom {
   }
 
   compilationHook({ mainTemplate }) {
-    this.activateReplacePublicPath(mainTemplate);
+    // only replace the public path if one of methodName, path or variableName was set
+    if (this.exclusiveOptionLength > 0) {
+      this.activateReplacePublicPath(mainTemplate);
+    }
 
     if (this.options[REPLACE_SRC_OPTION_NAME]) {
       this.activateReplaceSrc(mainTemplate);
@@ -58,7 +61,7 @@ class WebpackRequireFrom {
         hash
       });
 
-      const _config = Object.assign({ path: defaultPublicPath }, this.options);
+      const _config = this.options;
 
       let getterBody;
 	  if (_config.variableName) {

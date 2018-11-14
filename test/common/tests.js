@@ -16,6 +16,8 @@ const createGlobalEnv = function () {
     getElementsByTagName: () => [{ appendChild: appendChildTrap }]
   };
   appendChildTrap = console.log;
+  global.setWebpackPublicPath = false;
+  global.onTheFlyPublicPath = "onTheFlyPublicPath/";
 }
 
 const compile = (webpackEngine, config, fs) => {
@@ -78,11 +80,26 @@ describe("webpack-require-from", function () {
         appendChildTrap = ({src}) => assert.strictEqual(src.split("/")[0], "originalPublicPath");
         await compileWithWebpackVersion(webpackVersion, "empty_pluginConf");
       }),
+      it("allows public path to be set on the fly when config is empty", async () => {
+        global.setWebpackPublicPath = true;
+        appendChildTrap = ({src}) => assert.strictEqual(src.split("/")[0], "onTheFlyPublicPath");
+        await compileWithWebpackVersion(webpackVersion, "empty_pluginConf");
+      }),
       it("does nothing when config is empty object", async () => {
         appendChildTrap = ({src}) => assert.strictEqual(src.split("/")[0], "originalPublicPath");
         await compileWithWebpackVersion(webpackVersion, "emptyObject_pluginConf");
       }),
+      it("allows public path to be set on the fly when config is empty object", async () => {
+        global.setWebpackPublicPath = true;
+        appendChildTrap = ({src}) => assert.strictEqual(src.split("/")[0], "onTheFlyPublicPath");
+        await compileWithWebpackVersion(webpackVersion, "emptyObject_pluginConf");
+      }),
       it("replaces with a static path", async () => {
+        appendChildTrap = ({src}) => assert.strictEqual(src.split("/")[0], "staticPath");
+        await compileWithWebpackVersion(webpackVersion, "path_pluginConf");
+      }),
+      it("does not allow public path to be set on the fly when path is present", async () => {
+        global.setWebpackPublicPath = true;
         appendChildTrap = ({src}) => assert.strictEqual(src.split("/")[0], "staticPath");
         await compileWithWebpackVersion(webpackVersion, "path_pluginConf");
       }),
@@ -92,8 +109,22 @@ describe("webpack-require-from", function () {
         await compileWithWebpackVersion(webpackVersion, "methodName_pluginConf");
         global.getPublicPath = undefined;
       }),
+      it("does not allow public path to be set on the fly when methodName is present", async () => {
+        global.getPublicPath = () => 'newPublicPath/'
+        global.setWebpackPublicPath = true;
+        appendChildTrap = ({src}) => assert.strictEqual(src.split("/")[0], "newPublicPath");
+        await compileWithWebpackVersion(webpackVersion, "methodName_pluginConf");
+        global.getPublicPath = undefined;
+      }),
       it("replaces with a result of variableName", async () => {
         global.publicPath = 'newPublicPath/'
+        appendChildTrap = ({src}) => assert.strictEqual(src.split("/")[0], "newPublicPath");
+        await compileWithWebpackVersion(webpackVersion, "variableName_pluginConf");
+        global.publicPath = undefined;
+      }),
+      it("does not allow public path to be set on the fly if variableName is present", async () => {
+        global.publicPath = 'newPublicPath/'
+        global.setWebpackPublicPath = true;
         appendChildTrap = ({src}) => assert.strictEqual(src.split("/")[0], "newPublicPath");
         await compileWithWebpackVersion(webpackVersion, "variableName_pluginConf");
         global.publicPath = undefined;
