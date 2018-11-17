@@ -12,7 +12,7 @@ Webpack plugin that allows to configure the path / URL for fetching dynamic impo
 # Why is it helpful?
 Webpack allows to atomatically split code using [`require.ensure`](https://webpack.js.org/api/module-methods/#require-ensure) or [dynamic import](https://webpack.js.org/guides/code-splitting/#dynamic-imports) `import()`. The modules are organized into chunks automatically and extracted from your main bundle. Those chunks are fetched on-demand when your main bundle is run.
 
-The chunks are loaded from a static URL which is determined by `config.output.publicPath` entry of webpack configuration. 
+The chunks are loaded from a static URL which is determined by `config.output.publicPath` entry of [webpack configuration](https://webpack.js.org/guides/public-path/#on-the-fly).
 
 Sometimes the URL for loading chunks needs to be changed, for example:
 * Chunks are hosted at a CDN
@@ -38,7 +38,7 @@ module.exports = {
 ```
 
 # Configuration
-If no options provided, the default `config.output.publicPath` will be used.
+If no options provided, the default [`config.output.publicPath`](https://webpack.js.org/guides/public-path/#on-the-fly) will be used.
 
 ## `path`
 Set path for dynamically loading modules. The value you provide will replace `config.output.publicPath` when dynamically importing chunks. 
@@ -46,6 +46,15 @@ Set path for dynamically loading modules. The value you provide will replace `co
 For example, if default URL is `https://localhost`, chunk name is `0.js` and options object is `{path: "customPath/" }`, the chunk will be fetched from `https://localhost/customPath/0.js`
 
 > __NOTE__ `path`, `methodName` and `variableName` are mutualy exclusive and cannot be used together
+
+## `variableName`
+`variableName` is the globaly defined variable that will be evaluated at runtime, `variableName` is the name of a variable with string value that represents a path / URL that will be used for dynamically importing of chunks.
+
+For example, if default URL is `https://localhost`, chunk name is `0.js` and options object is `{variableName: "chunkURL" }`, while `window.chunkURL` is defined to be:
+```javascript
+window.chunkURL = 'https://app.cdn.com/buildXXX/'
+```
+the chunk will be fetched from  `https://app.cdn.com/buildXXX/0.js`
 
 ## `methodName` 
 Name of the globaly defined method that will be invoked at runtime, the method should return a path / URL that will be used for dynamically importing of chunks.
@@ -65,15 +74,6 @@ If used together with `replaceSrcMethodName`, chunks URL will be first modified 
 > __NOTE__ `path`, `methodName` and `variableName` are mutualy exclusive and cannot be used together
 
 > __NOTE__ that the method should be defined in a global namespace and should be defined before `require.ensure` or `import()` is invoked. See examples below
-
-## `variableName`
-Just like `methodName`, `variableName` is the globaly defined variable that will be invoked at runtime, the variableName is a string represents a path / URL that will be used for dynamically importing of chunks.
-
-For example, if default URL is `https://localhost`, chunk name is `0.js` and options object is `{variableName: "chunkURL" }`, while `window.chunkURL` is defined to be:
-```javascript
-window.chunkURL = 'https://app.cdn.com/buildXXX/'
-```
-the chunk will be fetched from  `https://app.cdn.com/buildXXX/0.js`
 
 ## `replaceSrcMethodName` 
 Name of the globaly defined method that will be invoked at runtime; the method receives the **full URL** of the dynamically required chunk as its argument and should return a `string` with the new URL.
