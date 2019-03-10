@@ -1,24 +1,70 @@
 const { PLUGIN_NAME } = require("./constants");
 
-exports.buildSrcReplaceCode = function(methodName, shouldSupressErrors = false) {
+exports.buildLegacySrcReplaceCode = function(
+  source,
+  methodName,
+  shouldSupressErrors = false
+) {
   return [
-    "function(originalSrc) {",
-    "try {",
+    `// ${PLUGIN_NAME} monkey-patching`,
+    `var originalScript = (function (document) {`,
+    source,
+    `return script;`,
+    `})({`,
+    `  createElement: function () { return {`,
+    `       setAttribute: function (name, val) { this.name = val; }`,
+    `     }; `,
+    `  }`,
+    `});`,
+    ``,
+    `try {`,
     `  if (typeof ${methodName} !== "function") {`,
     `    throw new Error("${PLUGIN_NAME}: '${methodName}' is not a function or not available at runtime. See https://github.com/agoldis/webpack-require-from#troubleshooting");`,
-    "  }",
-    `  var newSrc = ${methodName}(originalSrc);`,
-    "  if (!newSrc || typeof newSrc !== 'string') {",
+    `  }`,
+    `  var newSrc = ${methodName}(originalScript.src);`,
+    `  if (!newSrc || typeof newSrc !== 'string') {`,
     `    throw new Error("${PLUGIN_NAME}: '${methodName}' does not return string. See https://github.com/agoldis/webpack-require-from#troubleshooting");`,
-    "  }",
-    "  return newSrc;",
-    "} catch (e) {",
+    `  }`,
+    `  originalScript.src = newSrc;`,
+    `} catch (e) {`,
     `  if (!${shouldSupressErrors}) {`,
-    "    console.error(e);",
-    "  }",
-    `  return originalSrc;`,
-    "}",
-    "}"
+    `    console.error(e);`,
+    `  }`,
+    `}`,
+    `var script = document.createElement('script');`,
+    `Object.keys(originalScript).forEach(function (key) { script[key] = originalScript[key]; });`
+  ].join("\n");
+};
+
+exports.buildSrcReplaceCode = function(
+  source,
+  methodName,
+  shouldSupressErrors = false
+) {
+  return [
+    source,
+    `// ${PLUGIN_NAME} - monkey-patching`,
+    `if (typeof jsonpScriptSrc === 'function') {`,
+    `  var original_jsonpScriptSrc = jsonpScriptSrc;`,
+    `  function patchJsonpScriptSrc () {`,
+    `    try {`,
+    `      if (typeof ${methodName} !== "function") {`,
+    `        throw new Error("${PLUGIN_NAME}: '${methodName}' is not a function or not available at runtime. See https://github.com/agoldis/webpack-require-from#troubleshooting");`,
+    `      }`,
+    `      var newSrc = ${methodName}(original_jsonpScriptSrc.apply(this, arguments));`,
+    `      if (!newSrc || typeof newSrc !== 'string') {`,
+    `        throw new Error("${PLUGIN_NAME}: '${methodName}' does not return string. See https://github.com/agoldis/webpack-require-from#troubleshooting");`,
+    `      }`,
+    `      return newSrc;`,
+    `    } catch (e) {`,
+    `      if (!${shouldSupressErrors}) {`,
+    `        console.error(e);`,
+    `      }`,
+    `      return original_jsonpScriptSrc.apply(this, arguments);`,
+    `    }`,
+    `  }`,
+    `  jsonpScriptSrc = patchJsonpScriptSrc`,
+    `}`
   ].join("\n");
 };
 
@@ -26,7 +72,11 @@ exports.buildStringCode = function(pathString) {
   return `return "${pathString}";`;
 };
 
-exports.buildMethodCode = function(methodName, defaultPublicPath, shouldSupressErrors = false) {
+exports.buildMethodCode = function(
+  methodName,
+  defaultPublicPath,
+  shouldSupressErrors = false
+) {
   return [
     "try {",
     `  if (typeof ${methodName} !== "function") {`,
@@ -42,8 +92,11 @@ exports.buildMethodCode = function(methodName, defaultPublicPath, shouldSupressE
   ].join("\n");
 };
 
-
-exports.buildVariableCode = function (variableName, defaultPublicPath, shouldSupressErrors = false) {
+exports.buildVariableCode = function(
+  variableName,
+  defaultPublicPath,
+  shouldSupressErrors = false
+) {
   return [
     "try {",
     `  if (typeof ${variableName} !== "string") {`,
