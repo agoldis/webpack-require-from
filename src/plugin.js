@@ -1,6 +1,12 @@
-const { PLUGIN_NAME, REPLACE_SRC_OPTION_NAME, SUPPRESS_ERRORS_OPTION_NAME } = require("./constants");
-const { getOrSetHookMethod } = require("./helpers");
 const {
+  PLUGIN_NAME,
+  REPLACE_SRC_OPTION_NAME,
+  SUPPRESS_ERRORS_OPTION_NAME
+} = require("./constants");
+const { getHook, isLegacyTapable } = require("./helpers");
+
+const {
+  buildLegacySrcReplaceCode,
   buildSrcReplaceCode,
   buildMethodCode,
   buildStringCode,
@@ -9,9 +15,8 @@ const {
 
 class WebpackRequireFrom {
   constructor(userOptions) {
-
     // temp fix to support typo in option name
-    if (userOptions && typeof userOptions.supressErrors !== 'undefined') {
+    if (userOptions && typeof userOptions.supressErrors !== "undefined") {
       userOptions[SUPPRESS_ERRORS_OPTION_NAME] = userOptions.supressErrors;
     }
 
@@ -22,7 +27,11 @@ class WebpackRequireFrom {
     );
 
     // `path`, `methodName` and `variableName` are mutualy exclusive and cannot be used together
-    this.exclusiveOptionLength = [this.options.methodName, this.options.path, this.options.variableName].filter(_=>_).length;
+    this.exclusiveOptionLength = [
+      this.options.methodName,
+      this.options.path,
+      this.options.variableName
+    ].filter(_ => _).length;
     if (this.exclusiveOptionLength && this.exclusiveOptionLength !== 1) {
       throw new Error(
         `${PLUGIN_NAME}: Specify either "methodName", "path" or "variableName", not two or more. See https://github.com/agoldis/webpack-require-from#configuration`
@@ -31,7 +40,7 @@ class WebpackRequireFrom {
   }
 
   apply(compiler) {
-    getOrSetHookMethod(compiler, "compilation")(this.compilationHook.bind(this));
+    getHook(compiler, "compilation")(this.compilationHook.bind(this));
   }
 
   compilationHook({ mainTemplate }) {
@@ -46,30 +55,46 @@ class WebpackRequireFrom {
   }
 
   activateReplaceSrc(mainTemplate) {
-    getOrSetHookMethod(mainTemplate, "jsonp-script")(source => [
-      source,
-      `script.src = (${buildSrcReplaceCode(
-        this.options[REPLACE_SRC_OPTION_NAME],
-        this.options[SUPPRESS_ERRORS_OPTION_NAME]
-      )})(script.src);`
-    ].join("\n"));
+    if (isLegacyTapable(mainTemplate)) {
+      getHook(mainTemplate, "jsonp-script")(source =>
+        buildLegacySrcReplaceCode(
+          source,
+          this.options[REPLACE_SRC_OPTION_NAME],
+          this.options[SUPPRESS_ERRORS_OPTION_NAME]
+        )
+      );
+    } else {
+      getHook(mainTemplate, "local-vars")(source =>
+        buildSrcReplaceCode(
+          source,
+          this.options[REPLACE_SRC_OPTION_NAME],
+          this.options[SUPPRESS_ERRORS_OPTION_NAME]
+        )
+      );
+    }
   }
 
   activateReplacePublicPath(mainTemplate) {
-    getOrSetHookMethod(mainTemplate, "require-extensions")((source, chunk, hash) => {
+    getHook(mainTemplate, "require-extensions")((source, chunk, hash) => {
       const defaultPublicPath = mainTemplate.getPublicPath({
         hash
       });
 
-      const _config = this.options;
-
       let getterBody;
-	  if (_config.variableName) {
-        getterBody = buildVariableCode(_config.variableName, defaultPublicPath, this.options[SUPPRESS_ERRORS_OPTION_NAME]);
-      } else if (_config.methodName) {
-        getterBody = buildMethodCode(_config.methodName, defaultPublicPath, this.options[SUPPRESS_ERRORS_OPTION_NAME]);
-      } else if (_config.path) {
-        getterBody = buildStringCode(_config.path);
+      if (this.options.variableName) {
+        getterBody = buildVariableCode(
+          this.options.variableName,
+          defaultPublicPath,
+          this.options[SUPPRESS_ERRORS_OPTION_NAME]
+        );
+      } else if (this.options.methodName) {
+        getterBody = buildMethodCode(
+          this.options.methodName,
+          defaultPublicPath,
+          this.options[SUPPRESS_ERRORS_OPTION_NAME]
+        );
+      } else if (this.options.path) {
+        getterBody = buildStringCode(this.options.path);
       }
 
       return [
@@ -85,7 +110,6 @@ class WebpackRequireFrom {
   }
 }
 
-WebpackRequireFrom.prototype.defaultOptions = {
-};
+WebpackRequireFrom.prototype.defaultOptions = {};
 
 module.exports = WebpackRequireFrom;

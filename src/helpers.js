@@ -14,21 +14,29 @@ function dashToCamelCase(value) {
   return cameled.join("");
 }
 
-exports.getOrSetHookMethod = function(tapable, hookName) {
-  if (tapable.plugin && tapable.plugin.name !== "deprecated") {
-    // webpack < 4
-    return tapable.plugin.bind(tapable, [hookName]);
-  }
-  const newHookName = dashToCamelCase(hookName);
-
-  if (!tapable.hooks[newHookName]) {
+function fixJsonpScriptHook(tapable) {
+  if (!tapable.hooks.jsonpScript) {
     tapable.hooks.jsonpScript = new SyncWaterfallHook([
       "source",
       "chunk",
       "hash"
     ]);
   }
+}
 
+exports.isLegacyTapable = function(tapable) {
+  return tapable.plugin && tapable.plugin.name !== "deprecated";
+};
+
+exports.getHook = function(tapable, hookName) {
+  if (exports.isLegacyTapable(tapable)) {
+    // webpack < 4
+    return tapable.plugin.bind(tapable, [hookName]);
+  }
+
+  fixJsonpScriptHook(tapable);
+
+  const newHookName = dashToCamelCase(hookName);
   return tapable.hooks[newHookName].tap.bind(
     tapable.hooks[newHookName],
     PLUGIN_NAME
