@@ -18,9 +18,9 @@
   "author": "Andrew Goldis",
   "license": "MIT",
   "devDependencies": {
-    "tapable": "^1.0.0",
     "lodash.clonedeep": "^4.5.0",
     "memory-fs": "^0.4.1",
-    "mocha": "^5.2.0"
+    "mocha": "^5.2.0",
+    "tapable": "^1.0.0"
   }
 }
