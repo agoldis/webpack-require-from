@@ -34,7 +34,6 @@ const compile = (webpackEngine, config, fs) => {
       const code = fs
         .readFileSync(`${webpackConfigurations.buildPath}/main.js`)
         .toString();
-      // console.log(code);
       eval(code);
       resolve(code);
     });
@@ -97,36 +96,38 @@ describe("webpack-require-from", function() {
     });
   });
 
-  it("Patches jsonpScriptSrc for webpack4", async () => {
-    global.getSrc = () => "/";
-    const code = await compileWithWebpackVersion(
-      "webpack4",
-      "replaceSrcMethodName_pluginConf"
-    );
-    // jsonpScriptSrc patch exist
-    assert(code.match(jsonpRegex));
-    // document.createElement does not exist
-    assert(!code.match(documentRegex));
-  });
+  describe("Monkey Patching", () => {
+    it("Patches jsonpScriptSrc for webpack4", async () => {
+      global.getSrc = () => "/";
+      const code = await compileWithWebpackVersion(
+        "webpack4",
+        "replaceSrcMethodName_pluginConf"
+      );
+      // jsonpScriptSrc patch exist
+      assert(code.match(jsonpRegex));
+      // document.createElement does not exist
+      assert(!code.match(documentRegex));
+    });
 
-  it("Patches document.createElement for webpack < 4", async () => {
-    global.getSrc = () => "/";
-    const code3 = await compileWithWebpackVersion(
-      "webpack3",
-      "replaceSrcMethodName_pluginConf"
-    );
+    it("Patches document.createElement for webpack < 4", async () => {
+      global.getSrc = () => "/";
+      const code3 = await compileWithWebpackVersion(
+        "webpack3",
+        "replaceSrcMethodName_pluginConf"
+      );
 
-    const code2 = await compileWithWebpackVersion(
-      "webpack2",
-      "replaceSrcMethodName_pluginConf"
-    );
+      const code2 = await compileWithWebpackVersion(
+        "webpack2",
+        "replaceSrcMethodName_pluginConf"
+      );
 
-    // jsonpScriptSrc patch exist
-    assert(!code3.match(jsonpRegex));
-    assert(!code2.match(jsonpRegex));
-    // document.createElement does not exist
-    assert(code3.match(documentRegex));
-    assert(code2.match(documentRegex));
+      // jsonpScriptSrc patch exist
+      assert(!code3.match(jsonpRegex));
+      assert(!code2.match(jsonpRegex));
+      // document.createElement does not exist
+      assert(code3.match(documentRegex));
+      assert(code2.match(documentRegex));
+    });
   });
 
   Array.of("webpack2", "webpack3", "webpack4").map(webpackVersion =>
