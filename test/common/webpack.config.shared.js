@@ -63,11 +63,11 @@ const pluginConfList = {
   }
 };
 
-exports.buildPath = path.resolve("build")
+exports.buildPath = path.resolve("build");
 
 const baseConf = {
   entry: {
-    main: "./test/common/index.js"
+    main: "./test/common/src/index.js"
   },
   output: {
     filename: "[name].js",
@@ -75,14 +75,16 @@ const baseConf = {
     publicPath: "originalPublicPath/",
     path: exports.buildPath
   }
-}
+};
 
 exports.webpack4 = {};
 exports.webpack3 = {};
 exports.webpack2 = {};
 
 Object.entries(pluginConfList).map(([configName, configValue]) => {
-  exports.webpack4[configName] = Object.assign({}, baseConf, configValue, {mode: "development"})
-  exports.webpack3[configName] = Object.assign({}, baseConf, configValue)
-  exports.webpack2[configName] = Object.assign({}, baseConf, configValue)
-})
+  exports.webpack4[configName] = Object.assign({}, baseConf, configValue, {
+    mode: "development"
+  });
+  exports.webpack3[configName] = Object.assign({}, baseConf, configValue);
+  exports.webpack2[configName] = Object.assign({}, baseConf, configValue);
+});
