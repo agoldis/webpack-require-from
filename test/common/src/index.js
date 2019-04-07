@@ -18,3 +18,7 @@ import(/* webpackChunkName: "moduleC" */ "./moduleC")
     moduleC.run();
   })
   .catch(error => "An error occurred while import()");
+
+import(/* webpackChunkName: "worker" */ "./worker").then(worker => {
+  worker.default();
+});
