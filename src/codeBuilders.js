@@ -68,6 +68,21 @@ exports.buildSrcReplaceCode = function(
   ].join("\n");
 };
 
+exports.buildSrcReplaceCodeWebworker = function(source, methodName) {
+  return [
+    source,
+    ``,
+    `// ${PLUGIN_NAME} - monkey-patching`,
+    `if (typeof importScripts === 'function') {`,
+    `  var original  = importScripts;`,
+    `  function patch () {`,
+    `    original(${methodName}.apply(this, arguments));`,
+    `  }`,
+    `  importScripts  = patch;`,
+    `}`
+  ].join("\n");
+};
+
 exports.buildStringCode = function(pathString) {
   return `return "${pathString}";`;
 };

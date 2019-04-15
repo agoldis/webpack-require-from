@@ -6,6 +6,7 @@ const {
 const { getHook, isLegacyTapable } = require("./helpers");
 
 const {
+  buildSrcReplaceCodeWebworker,
   buildLegacySrcReplaceCode,
   buildSrcReplaceCode,
   buildMethodCode,
@@ -43,13 +44,55 @@ class WebpackRequireFrom {
     getHook(compiler, "compilation")(this.compilationHook.bind(this));
   }
 
-  compilationHook({ mainTemplate }) {
+  compilationHook(compilation) {
+    const { mainTemplate } = compilation;
+
+    // compilation.hooks.addEntry.tap(PLUGIN_NAME, (entry, name) => {
+    //   console.log("this", this);
+    //   console.log({ entry, name });
+    //   if (entry.type === "single entry") {
+    //     entry = MultiEntryPlugin.createDependency([
+    //       this.options.entry,
+    //       entry.request
+    //     ]);
+    //     console.log("Replaces single entry with multientry");
+    //   }
+    //   if (entry.type === "multi entry") {
+    //     entry.dependencies.unshift(
+    //       SingleEntryPlugin.createDependency(this.options.entry)
+    //     );
+    //     // entry = MultiEntryPlugin.createDependency([this.options.entry]);
+    //     console.log("MultiEntry dep");
+    //   }
+    //   entry.stam = "Sdfsdf";
+    // });
+    // const self = this;
+    // compilation.hooks.childCompiler.tap(PLUGIN_NAME, function(
+    //   childCompiler,
+    //   compilerName,
+    //   index
+    // ) {
+    //   if (Array.isArray(childCompiler.options.entry)) {
+    //     childCompiler.options.entry = [
+    //       self.options.entry,
+    //       ...childCompiler.options.entry
+    //     ];
+    //   } else {
+    //     childCompiler.options.entry = [
+    //       self.options.entry,
+    //       childCompiler.options.entry
+    //     ];
+    //   }
+    // });
     // only replace the public path if one of methodName, path or variableName was set
     if (this.exclusiveOptionLength > 0) {
       this.activateReplacePublicPath(mainTemplate);
     }
 
-    if (this.options[REPLACE_SRC_OPTION_NAME]) {
+    if (
+      this.options[REPLACE_SRC_OPTION_NAME] ||
+      this.options["webWorkerModifier"]
+    ) {
       this.activateReplaceSrc(mainTemplate);
     }
   }
@@ -64,13 +107,26 @@ class WebpackRequireFrom {
         )
       );
     } else {
-      getHook(mainTemplate, "local-vars")(source =>
-        buildSrcReplaceCode(
-          source,
-          this.options[REPLACE_SRC_OPTION_NAME],
-          this.options[SUPPRESS_ERRORS_OPTION_NAME]
-        )
+      const isWebWorker = mainTemplate.hooks.requireEnsure.taps.some(
+        tap => tap.name === "WebWorkerMainTemplatePlugin"
       );
+      if (isWebWorker) {
+        getHook(mainTemplate, "local-vars")(source =>
+          buildSrcReplaceCodeWebworker(
+            source,
+            this.options[REPLACE_SRC_OPTION_NAME],
+            this.options[SUPPRESS_ERRORS_OPTION_NAME]
+          )
+        );
+      } else {
+        getHook(mainTemplate, "local-vars")(source =>
+          buildSrcReplaceCode(
+            source,
+            this.options[REPLACE_SRC_OPTION_NAME],
+            this.options[SUPPRESS_ERRORS_OPTION_NAME]
+          )
+        );
+      }
     }
   }
 

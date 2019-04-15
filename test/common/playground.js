@@ -24,13 +24,41 @@ const compile = (webpackEngine, config, fs) => {
 const compileWithWebpackVersion = (webpackVersion, configName) =>
   compile(
     require(`../${webpackVersion}/node_modules/webpack`),
-    webpackConfigurations[webpackVersion][configName],
+    {
+      mode: "development",
+      entry: {
+        main: "./test/common/src/index.js"
+      },
+      output: {
+        filename: "[name].js",
+        chunkFilename: "[name].js",
+        publicPath: "originalPublicPath/",
+        path: webpackConfigurations.buildPath
+      },
+      module: {
+        rules: [
+          {
+            test: /index\.js$/,
+            use: {
+              loader: path.resolve(
+                `test/${webpackVersion}/node_modules/worker-loader`
+              )
+            }
+          }
+        ]
+      },
+      plugins: [
+        new WebpackRequireFrom({
+          path: "staticPath/"
+        })
+      ]
+    },
     new memoryFS()
   );
 
 (async function run() {
   await compileWithWebpackVersion(
-    "webpack2",
+    "webpack4",
     "replaceSrcMethodName_pluginConf"
   );
 })();
