@@ -23,7 +23,10 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin(),
     new RequireFrom({
-      replaceSrcMethodName: "getSrc"
+      // path: 'https://custom.domain',
+      // variableName: "__globalCustomDomain",
+      // methodName: "__globalCustomDomain",
+      replaceSrcMethodName: "__replaceWebpackDynamicImport"
     })
   ]
 };
