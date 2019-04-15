@@ -1,4 +1,5 @@
 [![npm version](https://badge.fury.io/js/webpack-require-from.svg)](https://badge.fury.io/js/webpack-require-from)
+[![npm](https://img.shields.io/npm/dm/webpack-require-from.svg)](https://www.npmjs.com/package/webpack-require-from)
 [![CircleCI](https://circleci.com/gh/agoldis/webpack-require-from.svg?style=svg)](https://circleci.com/gh/agoldis/webpack-require-from)
 
 # webpack-require-from
@@ -24,6 +25,7 @@ Sometimes you need to change this URL for loading modules (chunks), when, for ex
 - Different environments use different URLs for loading assets (production, staging, qa)
 - Your `index` file is served from a different location / port
 - You need to dynamically load pre-compiled files from a different location
+- You need to load 3rd part web worker from a CDN
 
 # How to use
 
@@ -44,7 +46,7 @@ const webpackRequireFromConfig = (module.exports = {
 
 # Configuration
 
-If no options provided, the plugin will use the default [`config.output.publicPath`](https://webpack.js.org/guides/public-path/#on-the-fly).
+If no options provided, the plugin will use the default [`config.output.publicPath`](https://webpack.js.org/guides/public-path/#on-the-fly). Check out the "example" directory.
 
 ## `path`
 
@@ -215,11 +217,13 @@ The plugin allows to change the loading path of web-workers.
 
 Do to so, use the [`worker-loader`](https://github.com/webpack-contrib/worker-loader) loader. The loader uses [`importScripts`](https://developer.mozilla.org/en-US/docs/Web/API/WorkerGlobalScope/importScripts) to dynamically load modules from within your web-worker and support [cross-domain web workers](https://benohead.com/cross-domain-cross-browser-web-workers/). More specifically it:
 
-1.  Creates a new webpack entry that only contains `new Worker(workerURL);`, while `workerURL` is your main webworker module
+1.  Creates a new webpack entry that only contains `new Worker(workerURL)`, while `workerURL` is your main webworker module
 2.  Enhances your webworker main module with webpack runtime utilities
 3.  Uses `importScripts` to dynamically load new modules within webworker context (thus avoiding cross-domain limitations)
 
 The plugin monkey-patches `importScripts` and invokes the method you've defined within [`replaceSrcMethodName`](#replacesrcmethodname) configuration option. The method you've provided will be invoked just before calling `importScripts` with the required module path as the single argument.
+
+Check out the working example of using the plugin with web-workers at [web2fs-notepad](https://github.com/sushain97/web2fs-notepad/commit/06b3ece074f1c1c96d9bb75436181147943f6026#diff-028b78cada5fa9a59260b989f3b86ffeR52) by @sushain97.
 
 # Troubleshooting
 

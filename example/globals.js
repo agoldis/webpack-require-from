@@ -1,4 +1,4 @@
-global.getSrc = function(path) {
+global.__replaceWebpackDynamicImport = function(path) {
   console.log("May be modifying path", path);
-  return path;
+  return `${path}/modified`;
 };
