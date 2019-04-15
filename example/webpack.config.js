@@ -21,7 +21,9 @@ module.exports = {
     ]
   },
   plugins: [
-    new HtmlWebpackPlugin(),
+    new HtmlWebpackPlugin({
+      template: "./index.html"
+    }),
     new RequireFrom({
       // path: 'https://custom.domain',
       // variableName: "__globalCustomDomain",
