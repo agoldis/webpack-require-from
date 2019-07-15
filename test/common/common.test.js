@@ -2,7 +2,7 @@ const assert = require("assert");
 const memoryFS = require("memory-fs");
 const cloneDeep = require("lodash.clonedeep");
 
-const WebpackRequireFrom = require("../../");
+const WebpackRequireFrom = require("../..");
 const webpackConfigurations = require("./webpack.config.shared");
 
 let appendChildTrap;
@@ -13,11 +13,13 @@ const createGlobalEnv = function() {
   // create micro browser-like environment for the tests
   global.setTimeout = () => {};
   global.window = {};
+  appendChildTrap = () => {};
+
   global.document = {
+    head: { appendChild: appendChildTrap },
     createElement: () => ({ src: {} }),
     getElementsByTagName: () => [{ appendChild: appendChildTrap }]
   };
-  appendChildTrap = () => {};
   global.setWebpackPublicPath = false;
   global.onTheFlyPublicPath = "onTheFlyPublicPath/";
   global.getSrc = global.getPublicPath = global.publicPath = undefined;

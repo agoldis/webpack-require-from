@@ -15,7 +15,9 @@ const compile = (webpackEngine, config, fs) => {
         reject(new Error(err || stats.compilation.errors));
       }
       const files = fs.readdirSync(webpackConfigurations.buildPath);
-      const workerEntryFile = files.find(f => f.match(/\S+\.worker\.js/));
+      const workerEntryFile = files.find(f =>
+        f.match(/^[a-zA-Z0-9]+\.worker\.js/)
+      );
       const code = fs
         .readFileSync(`${webpackConfigurations.buildPath}/${workerEntryFile}`)
         .toString();
@@ -58,7 +60,7 @@ const compile = (webpackEngine, config, fs) => {
             filename: "[name].js",
             chunkFilename: "[name].js",
             path: webpackConfigurations.buildPath,
-            globalObject: "this"
+            globalObject: "global"
           },
           module: {
             rules: [
