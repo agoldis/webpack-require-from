@@ -1,7 +1,8 @@
 const {
   PLUGIN_NAME,
   REPLACE_SRC_OPTION_NAME,
-  SUPPRESS_ERRORS_OPTION_NAME
+  SUPPRESS_ERRORS_OPTION_NAME,
+  DISABLE_CSS_OPTION_NAME,
 } = require("./constants");
 const { getHook, isLegacyTapable } = require("./helpers");
 
@@ -45,7 +46,13 @@ class WebpackRequireFrom {
   }
 
   compilationHook(compilation) {
-    const { mainTemplate } = compilation;
+    const { mainTemplate, name } = compilation;
+
+    if(this.options[DISABLE_CSS_OPTION_NAME]) {
+      // skip further execution for CSS compilation
+      if(/\.(sa|sc|c)ss$/i.test(name))
+        return;
+    }
 
     // compilation.hooks.addEntry.tap(PLUGIN_NAME, (entry, name) => {
     //   console.log("this", this);
@@ -166,6 +173,8 @@ class WebpackRequireFrom {
   }
 }
 
-WebpackRequireFrom.prototype.defaultOptions = {};
+WebpackRequireFrom.prototype.defaultOptions = {
+    [DISABLE_CSS_OPTION_NAME]: false,
+};
 
 module.exports = WebpackRequireFrom;

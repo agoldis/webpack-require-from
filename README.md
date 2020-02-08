@@ -117,6 +117,10 @@ If used together with `methodName` or `variableName`, chunks URL will be first m
 
 The plugin will invoke `console.error` when the method name you defined in `replaceSrcMethodName`, `methodName` or `variableName` cannot be detected. Turning this option on will suppress the error messages.
 
+## `disableCss (default: false)`
+
+Disable plugin for css files. Tthis option is useful if your project includes mini-css-extract-plugin or extract-css-chunks-webpack-plugin. These plugins provide their own way of setting public path.
+
 ## Defining gobaly available methods and variable
 
 When your JS code is executed in browser, the variable/methods whose names you mention as `variableName`, `methodName` or `replaceSrcMethodName` value, should be set **before** the first call to `require.ensure()` or `import()` is executed.
