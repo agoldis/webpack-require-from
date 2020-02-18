@@ -3,6 +3,14 @@
   "version": "1.8.1",
   "description": "Webpack plugin that allows to configure path or URL for fetching dynamic imports",
   "main": "index.js",
+  "keywords": [
+    "dynamic import",
+    "webpack",
+    "plugin",
+    "import",
+    "require.ensure",
+    "dynamic chunks"
+  ],
   "scripts": {
     "build-webpack2": "cd ./test/webpack2 && yarn run build && cd ..",
     "build-webpack3": "cd ./test/webpack3 && yarn run build && cd ..",
