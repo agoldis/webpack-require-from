@@ -93,17 +93,17 @@ exports.buildMethodCode = function(
   shouldSupressErrors = false
 ) {
   return [
-    "try {",
+    `try {`,
     `  if (typeof ${methodName} !== "function") {`,
     `    throw new Error("${PLUGIN_NAME}: '${methodName}' is not a function or not available at runtime. See https://github.com/agoldis/webpack-require-from#troubleshooting");`,
-    "  }",
+    `  }`,
     `  return ${methodName}();`,
-    "} catch (e) {",
+    `} catch (e) {`,
     `  if (!${shouldSupressErrors}) {`,
-    "    console.error(e);",
-    "  }",
+    `    console.error(e);`,
+    `  }`,
     `  return "${defaultPublicPath.replace(/\\/g, "\\\\")}";`,
-    "}"
+    `}`
   ].join("\n");
 };
 
@@ -113,16 +113,16 @@ exports.buildVariableCode = function(
   shouldSupressErrors = false
 ) {
   return [
-    "try {",
+    `try {`,
     `  if (typeof ${variableName} !== "string") {`,
     `    throw new Error("${PLUGIN_NAME}: '${variableName}' is not a string or not available at runtime. See https://github.com/agoldis/webpack-require-from#troubleshooting");`,
-    "  }",
+    `  }`,
     `  return ${variableName};`,
-    "} catch (e) {",
+    `} catch (e) {`,
     `  if (!${shouldSupressErrors}) {`,
-    "    console.error(e);",
-    "  }",
+    `    console.error(e);`,
+    `  }`,
     `  return "${defaultPublicPath.replace(/\\/g, "\\\\")}";`,
-    "}"
+    `}`
   ].join("\n");
 };

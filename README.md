@@ -4,22 +4,37 @@
 
 # webpack-require-from
 
-Webpack plugin that allows to configure the path / URL for fetching dynamic imports
+Control the dynamic imports path / URL at runtime
 
-- Compatible with webpack 4, 3, 2
+- Compatible with webpack 5, 4, 3, 2
 - Supports web-workers loading (https://github.com/webpack-contrib/worker-loader)
-- Lightweight
-- No dependencies
-- Tested
 - Production-ready
+- No dependencies
+- Lightweight
+- Tested
 
-# Why is it helpful?
+## Table of contents
 
-Webpack allows to atomatically split and load code using [`require.ensure`](https://webpack.js.org/api/module-methods/#require-ensure) or [dynamic import](https://webpack.js.org/guides/code-splitting/#dynamic-imports) `import()`. Those modules are fetched on-demand when your main bundle is running is browser.
+- [Why changing dynamic imports path at runtime?](#Why-changing-dynamic-imports-path-at-runtime)
+- [How to use](#How-to-use)
+- [Configuration](#configuration)
+  - [`path`](#path)
+  - [`variableName`](#variableName)
+  - [`methodName`](#methodName)
+  - [`replaceSrcMethodName`](#replaceSrcMethodName)
+  - [`suppressErrors`](#suppressErrors)
+- [Global methods and variables](#Global-methods-and-variables)
+- [Web workers](#Web-Workers)
+- [Troubleshooting](#Troubleshooting)
+- [Tests](#tests)
+
+# Why changing dynamic imports path at runtime?
+
+Webpack allows to split and load code atomatically using [`require.ensure`](https://webpack.js.org/api/module-methods/#require-ensure) or [dynamic import](https://webpack.js.org/guides/code-splitting/#dynamic-imports) `import()`. Modules are fetched "on-demand" when your main bundle is running in browser.
 
 Webpack loads the modules (chunks) from a static URL, which is determined by `config.output.publicPath` of [webpack configuration](https://webpack.js.org/guides/public-path/#on-the-fly).
 
-Sometimes you need to change this URL for loading modules (chunks), when, for example:
+Sometimes you need to control this modules (chunks) URL at runtime, for example:
 
 - Chunks are hosted at a CDN
 - Different environments use different URLs for loading assets (production, staging, qa)
@@ -113,11 +128,11 @@ If used together with `methodName` or `variableName`, chunks URL will be first m
 
 > **NOTE** that the method should be defined in a global namespace and should be defined before `require.ensure` or `import()` is invoked.
 
-## `suppressErrors (default: false)`
+## `suppressErrors`
 
-The plugin will invoke `console.error` when the method name you defined in `replaceSrcMethodName`, `methodName` or `variableName` cannot be detected. Turning this option on will suppress the error messages.
+`default: false`. The plugin will invoke `console.error` when the method name you defined in `replaceSrcMethodName`, `methodName` or `variableName` cannot be detected. Turning this option on will suppress the error messages.
 
-## Defining gobaly available methods and variable
+# Global methods and variables
 
 When your JS code is executed in browser, the variable/methods whose names you mention as `variableName`, `methodName` or `replaceSrcMethodName` value, should be set **before** the first call to `require.ensure()` or `import()` is executed.
 
@@ -173,7 +188,7 @@ app.get("/", (req, res) =>
 </html>
 ```
 
-# Web Worker
+# Web Workers
 
 **TL;DR**
 
@@ -233,7 +248,7 @@ Check out the working example of using the plugin with web-workers at [web2fs-no
 
 - Make sure the method is defined **before** the very first invocation of either `require.ensure()` or `import()`
 
-  > `Specify either "methodName" or "path", not together.`
+> `Specify either "methodName" or "path", not together.`
 
 - `path` and `methodName` are mutualy exclusive and cannot be used together, use either of them
 
