@@ -1,4 +1,8 @@
 .example
 .vscode
+.github
+.circleci
+appveyor.yml
 node_modules
-examples
+example
+test
