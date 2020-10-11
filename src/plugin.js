@@ -135,7 +135,7 @@ class WebpackRequireFrom {
         "  get: function () {",
         getterBody,
         " }",
-        "})"
+        "});"
       ].join("\n");
     });
   }
