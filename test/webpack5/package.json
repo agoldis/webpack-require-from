@@ -1,0 +1,14 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "main": "../common/index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "echo \"Building webpack 4\" && yarn"
+  },
+  "dependencies": {
+    "html-webpack-plugin": "^4.5.0",
+    "webpack": "^5.1.0",
+    "worker-loader": "^3.0.4"
+  }
+}
