@@ -15,9 +15,10 @@
     "build-webpack2": "cd ./test/webpack2 && yarn run build && cd ..",
     "build-webpack3": "cd ./test/webpack3 && yarn run build && cd ..",
     "build-webpack4": "cd ./test/webpack4 && yarn run build && cd ..",
-    "build-tests": "yarn run build-webpack4 && yarn run build-webpack3 && yarn run build-webpack2",
+    "build-webpack5": "cd ./test/webpack5 && yarn run build && cd ..",
+    "build-tests": "yarn run build-webpack5 && yarn run build-webpack4 && yarn run build-webpack3 && yarn run build-webpack2",
     "test": "yarn run build-tests && yarn run test-slim",
-    "test-slim": "mocha ./test/common/*.test.js"
+    "test-slim": "mocha --exit ./test/common/*.test.js"
   },
   "peerDependencies": {
     "tapable": "^1.0.0"
@@ -27,6 +28,7 @@
   "license": "MIT",
   "devDependencies": {
     "lodash.clonedeep": "^4.5.0",
+    "memfs": "^3.2.0",
     "memory-fs": "^0.4.1",
     "mocha": "^5.2.0",
     "tapable": "^1.0.0"

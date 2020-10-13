@@ -1,10 +1,10 @@
-const assert = require("assert");
-const path = require("path");
-const memoryFS = require("memory-fs");
-const cloneDeep = require("lodash.clonedeep");
+const assert = require('assert');
+const path = require('path');
+const memoryFS = require('memory-fs');
+const cloneDeep = require('lodash.clonedeep');
 
-const WebpackRequireFrom = require("../..");
-const webpackConfigurations = require("./webpack.config.shared");
+const WebpackRequireFrom = require('../..');
+const webpackConfigurations = require('./webpack.config.shared');
 
 const compile = (webpackEngine, config, fs) => {
   const compiler = webpackEngine(cloneDeep(config));
@@ -15,7 +15,7 @@ const compile = (webpackEngine, config, fs) => {
         reject(new Error(err || stats.compilation.errors));
       }
       const files = fs.readdirSync(webpackConfigurations.buildPath);
-      const workerEntryFile = files.find(f =>
+      const workerEntryFile = files.find((f) =>
         f.match(/^[a-zA-Z0-9]+\.worker\.js/)
       );
       const code = fs
@@ -27,15 +27,15 @@ const compile = (webpackEngine, config, fs) => {
   });
 };
 
-["webpack4"].map(webpackVersion => {
+['webpack4'].map((webpackVersion) => {
   describe(`${webpackVersion} only`, () => {
-    describe("Web workers", () => {
-      it("replaces path for web workers", async () => {
+    describe('Web workers', () => {
+      it('replaces path for web workers', async () => {
         const fs = new memoryFS();
         console.error = () => {};
 
         let importPath, workerChunkName;
-        global.getSrc = path => {
+        global.getSrc = (path) => {
           workerChunkName = path;
           return `https://custom.com/${workerChunkName}`;
         };
@@ -43,7 +43,7 @@ const compile = (webpackEngine, config, fs) => {
           importPath = path;
         };
 
-        global.Worker = function(path) {
+        global.Worker = function (path) {
           eval(
             fs
               .readFileSync(`${webpackConfigurations.buildPath}/${path}`)
@@ -52,15 +52,15 @@ const compile = (webpackEngine, config, fs) => {
         };
 
         const config = {
-          mode: "development",
+          mode: 'development',
           entry: {
-            main: "./test/common/src/index.js"
+            main: './test/common/src/index.js',
           },
           output: {
-            filename: "[name].js",
-            chunkFilename: "[name].js",
+            filename: '[name].js',
+            chunkFilename: '[name].js',
             path: webpackConfigurations.buildPath,
-            globalObject: "global"
+            globalObject: 'global',
           },
           module: {
             rules: [
@@ -69,16 +69,16 @@ const compile = (webpackEngine, config, fs) => {
                 use: {
                   loader: path.resolve(
                     `test/${webpackVersion}/node_modules/worker-loader`
-                  )
-                }
-              }
-            ]
+                  ),
+                },
+              },
+            ],
           },
           plugins: [
             new WebpackRequireFrom({
-              replaceSrcMethodName: "getSrc"
-            })
-          ]
+              replaceSrcMethodName: 'getSrc',
+            }),
+          ],
         };
 
         await compile(

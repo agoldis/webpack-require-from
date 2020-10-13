@@ -1,27 +1,40 @@
-const assert = require("assert");
-const memoryFS = require("memory-fs");
-const cloneDeep = require("lodash.clonedeep");
+const assert = require('assert');
+const { fs } = require('memfs');
+const memoryFS = require('memory-fs');
+const cloneDeep = require('lodash.clonedeep');
 
-const WebpackRequireFrom = require("../..");
-const webpackConfigurations = require("./webpack.config.shared");
+const WebpackRequireFrom = require('../..');
+const webpackConfigurations = require('./webpack.config.shared');
 
 let appendChildTrap;
 
 const originalConsoleError = console.error;
 
-const createGlobalEnv = function() {
+const createGlobalEnv = function () {
   // create micro browser-like environment for the tests
-  global.setTimeout = () => {};
+  // global.setTimeout = () => {};
   global.window = {};
   appendChildTrap = () => {};
+  getAttributeTrap = () => {};
+  setAttributeTrap = () => {};
 
   global.document = {
     head: { appendChild: appendChildTrap },
-    createElement: () => ({ src: {} }),
-    getElementsByTagName: () => [{ appendChild: appendChildTrap }]
+    createElement: () => ({
+      src: {},
+      getAttribute: getAttributeTrap,
+      setAttribute: setAttributeTrap,
+    }),
+    getElementsByTagName: () => [
+      {
+        appendChild: appendChildTrap,
+        getAttribute: getAttributeTrap,
+        setAttribute: setAttributeTrap,
+      },
+    ],
   };
   global.setWebpackPublicPath = false;
-  global.onTheFlyPublicPath = "onTheFlyPublicPath/";
+  global.onTheFlyPublicPath = 'onTheFlyPublicPath/';
   global.getSrc = global.getPublicPath = global.publicPath = undefined;
 };
 
@@ -60,7 +73,7 @@ Each test:
 - asserts test case in the trap function
 - cleans up
 */
-describe("webpack-require-from", function() {
+describe('webpack-require-from', function () {
   const documentRegex = /var originalScript = \(function \(document\) \{/;
   const jsonpRegex = /var original_jsonpScriptSrc = jsonpScriptSrc/;
 
@@ -71,39 +84,39 @@ describe("webpack-require-from", function() {
   afterEach(() => {
     console.error = originalConsoleError;
   });
-  describe("Configuration", function() {
-    it("throws when two of more of [path, methodName, variableName] are defined", () => {
+  describe('Configuration', function () {
+    it('throws when two of more of [path, methodName, variableName] are defined', () => {
       try {
-        new WebpackRequireFrom({ path: "some", methodName: "thing" });
+        new WebpackRequireFrom({ path: 'some', methodName: 'thing' });
         throw new Error(
-          "should throw when two of more of [path, methodName, variableName] are defined"
+          'should throw when two of more of [path, methodName, variableName] are defined'
         );
       } catch (e) {}
     });
-    it("throws when two of more of [path, methodName, variableName] are defined", () => {
+    it('throws when two of more of [path, methodName, variableName] are defined', () => {
       try {
-        new WebpackRequireFrom({ path: "some", variableName: "thing" });
+        new WebpackRequireFrom({ path: 'some', variableName: 'thing' });
         throw new Error(
-          "should throw when two of more of [path, methodName, variableName] are defined"
+          'should throw when two of more of [path, methodName, variableName] are defined'
         );
       } catch (e) {}
     });
-    it("throws when two of more of [path, methodName, variableName] are defined", () => {
+    it('throws when two of more of [path, methodName, variableName] are defined', () => {
       try {
-        new WebpackRequireFrom({ variableName: "some", methodName: "thing" });
+        new WebpackRequireFrom({ variableName: 'some', methodName: 'thing' });
         throw new Error(
-          "should throw when two of more of [path, methodName, variableName] are defined"
+          'should throw when two of more of [path, methodName, variableName] are defined'
         );
       } catch (e) {}
     });
   });
 
-  describe("Monkey Patching", () => {
-    it("Patches jsonpScriptSrc for webpack4", async () => {
-      global.getSrc = () => "/";
+  describe('Monkey Patching', () => {
+    it('Patches jsonpScriptSrc for webpack4', async () => {
+      global.getSrc = () => '/';
       const code = await compileWithWebpackVersion(
-        "webpack4",
-        "replaceSrcMethodName_pluginConf"
+        'webpack4',
+        'replaceSrcMethodName_pluginConf'
       );
       // jsonpScriptSrc patch exist
       assert(code.match(jsonpRegex));
@@ -111,16 +124,16 @@ describe("webpack-require-from", function() {
       assert(!code.match(documentRegex));
     });
 
-    it("Patches document.createElement for webpack < 4", async () => {
-      global.getSrc = () => "/";
+    it('Patches document.createElement for webpack < 4', async () => {
+      global.getSrc = () => '/';
       const code3 = await compileWithWebpackVersion(
-        "webpack3",
-        "replaceSrcMethodName_pluginConf"
+        'webpack3',
+        'replaceSrcMethodName_pluginConf'
       );
 
       const code2 = await compileWithWebpackVersion(
-        "webpack2",
-        "replaceSrcMethodName_pluginConf"
+        'webpack2',
+        'replaceSrcMethodName_pluginConf'
       );
 
       // jsonpScriptSrc patch exist
@@ -132,347 +145,355 @@ describe("webpack-require-from", function() {
     });
   });
 
-  Array.of("webpack2", "webpack3", "webpack4").map(webpackVersion =>
-    describe(webpackVersion, () => {
-      it("does nothing when config is empty", async () => {
-        appendChildTrap = ({ src }) =>
-          assert.strictEqual(src.split("/")[0], "originalPublicPath");
-        await compileWithWebpackVersion(webpackVersion, "empty_pluginConf");
-      });
-      it("allows public path to be set on the fly when config is empty", async () => {
-        global.setWebpackPublicPath = true;
-        appendChildTrap = ({ src }) =>
-          assert.strictEqual(src.split("/")[0], "onTheFlyPublicPath");
-        await compileWithWebpackVersion(webpackVersion, "empty_pluginConf");
-      });
-      it("does nothing when config is empty object", async () => {
-        appendChildTrap = ({ src }) =>
-          assert.strictEqual(src.split("/")[0], "originalPublicPath");
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "emptyObject_pluginConf"
-        );
-      });
-      it("allows public path to be set on the fly when config is empty object", async () => {
-        global.setWebpackPublicPath = true;
-        appendChildTrap = ({ src }) =>
-          assert.strictEqual(src.split("/")[0], "onTheFlyPublicPath");
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "emptyObject_pluginConf"
-        );
-      });
-      it("replaces with a static path", async () => {
-        appendChildTrap = ({ src }) =>
-          assert.strictEqual(src.split("/")[0], "staticPath");
-        await compileWithWebpackVersion(webpackVersion, "path_pluginConf");
-      });
-      it("does not allow public path to be set on the fly when path is present", async () => {
-        global.setWebpackPublicPath = true;
-        appendChildTrap = ({ src }) =>
-          assert.strictEqual(src.split("/")[0], "staticPath");
-        await compileWithWebpackVersion(webpackVersion, "path_pluginConf");
-      });
-      it("replaces with a result of methodName", async () => {
-        global.getPublicPath = () => "newPublicPath/";
-        appendChildTrap = ({ src }) =>
-          assert.strictEqual(src.split("/")[0], "newPublicPath");
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "methodName_pluginConf"
-        );
-      });
-      it("does not allow public path to be set on the fly when methodName is present", async () => {
-        global.getPublicPath = () => "newPublicPath/";
-        global.setWebpackPublicPath = true;
-        appendChildTrap = ({ src }) =>
-          assert.strictEqual(src.split("/")[0], "newPublicPath");
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "methodName_pluginConf"
-        );
-      });
-      it("replaces with a result of variableName", async () => {
-        global.publicPath = "newPublicPath/";
-        appendChildTrap = ({ src }) =>
-          assert.strictEqual(src.split("/")[0], "newPublicPath");
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "variableName_pluginConf"
-        );
-      });
-      it("does not allow public path to be set on the fly if variableName is present", async () => {
-        global.publicPath = "newPublicPath/";
-        global.setWebpackPublicPath = true;
-        appendChildTrap = ({ src }) =>
-          assert.strictEqual(src.split("/")[0], "newPublicPath");
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "variableName_pluginConf"
-        );
-      });
-      it("uses default public path when methodName is undefined", async () => {
-        let errorCalled = false;
-        console.error = () => {
-          errorCalled = true;
-        };
-        appendChildTrap = ({ src }) => {
-          assert.strictEqual(src.split("/")[0], "originalPublicPath");
-          assert.strictEqual(errorCalled, true);
-        };
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "methodName_pluginConf"
-        );
-      });
-      it("uses default public path when variableName is undefined", async () => {
-        let errorCalled = false;
-        console.error = () => {
-          errorCalled = true;
-        };
-        appendChildTrap = ({ src }) => {
-          assert.strictEqual(src.split("/")[0], "originalPublicPath");
-          assert.strictEqual(errorCalled, true);
-        };
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "variableName_pluginConf"
-        );
-      });
-      it("uses default windows public path when methodName is undefined", async () => {
-        console.error = () => {};
+  Array.of('webpack2', 'webpack3', 'webpack4', 'webpack5').map(
+    (webpackVersion) =>
+      // Array.of('webpack5').map((webpackVersion) =>
+      describe(webpackVersion, () => {
+        it('does nothing when config is empty', async () => {
+          appendChildTrap = ({ src }) =>
+            assert.strictEqual(src.split('/')[0], 'originalPublicPath');
+          await compileWithWebpackVersion(webpackVersion, 'empty_pluginConf');
+        });
+        it('allows public path to be set on the fly when config is empty', async () => {
+          global.setWebpackPublicPath = true;
+          appendChildTrap = ({ src }) =>
+            assert.strictEqual(src.split('/')[0], 'onTheFlyPublicPath');
+          await compileWithWebpackVersion(webpackVersion, 'empty_pluginConf');
+        });
+        it('does nothing when config is empty object', async () => {
+          appendChildTrap = ({ src }) =>
+            assert.strictEqual(src.split('/')[0], 'originalPublicPath');
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'emptyObject_pluginConf'
+          );
+        });
+        it('allows public path to be set on the fly when config is empty object', async () => {
+          global.setWebpackPublicPath = true;
+          appendChildTrap = ({ src }) =>
+            assert.strictEqual(src.split('/')[0], 'onTheFlyPublicPath');
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'emptyObject_pluginConf'
+          );
+        });
+        it('replaces with a static path', async () => {
+          appendChildTrap = ({ src }) =>
+            assert.strictEqual(src.split('/')[0], 'staticPath');
+          await compileWithWebpackVersion(webpackVersion, 'path_pluginConf');
+        });
+        it('does not allow public path to be set on the fly when path is present', async () => {
+          global.setWebpackPublicPath = true;
+          appendChildTrap = ({ src }) =>
+            assert.strictEqual(src.split('/')[0], 'staticPath');
+          await compileWithWebpackVersion(webpackVersion, 'path_pluginConf');
+        });
+        it('replaces with a result of methodName', async () => {
+          global.getPublicPath = () => 'newPublicPath/';
+          appendChildTrap = ({ src }) =>
+            assert.strictEqual(src.split('/')[0], 'newPublicPath');
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'methodName_pluginConf'
+          );
+        });
+        it('does not allow public path to be set on the fly when methodName is present', async () => {
+          global.getPublicPath = () => 'newPublicPath/';
+          global.setWebpackPublicPath = true;
+          appendChildTrap = ({ src }) =>
+            assert.strictEqual(src.split('/')[0], 'newPublicPath');
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'methodName_pluginConf'
+          );
+        });
+        it('replaces with a result of variableName', async () => {
+          global.publicPath = 'newPublicPath/';
+          appendChildTrap = ({ src }) =>
+            assert.strictEqual(src.split('/')[0], 'newPublicPath');
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'variableName_pluginConf'
+          );
+        });
+        it('does not allow public path to be set on the fly if variableName is present', async () => {
+          global.publicPath = 'newPublicPath/';
+          global.setWebpackPublicPath = true;
+          appendChildTrap = ({ src }) =>
+            assert.strictEqual(src.split('/')[0], 'newPublicPath');
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'variableName_pluginConf'
+          );
+        });
+        it('uses default public path when methodName is undefined', async () => {
+          let errorCalled = false;
+          console.error = () => {
+            errorCalled = true;
+          };
+          appendChildTrap = ({ src }) => {
+            assert.strictEqual(src.split('/')[0], 'originalPublicPath');
+            assert.strictEqual(errorCalled, true);
+          };
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'methodName_pluginConf'
+          );
+        });
+        it('uses default public path when variableName is undefined', async () => {
+          let errorCalled = false;
+          console.error = () => {
+            errorCalled = true;
+          };
+          appendChildTrap = ({ src }) => {
+            assert.strictEqual(src.split('/')[0], 'originalPublicPath');
+            assert.strictEqual(errorCalled, true);
+          };
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'variableName_pluginConf'
+          );
+        });
+        it('uses default windows public path when methodName is undefined', async () => {
+          console.error = () => {};
 
-        const config = cloneDeep(
-          webpackConfigurations[webpackVersion]["methodName_pluginConf"]
-        );
-        config.output.publicPath = "C:\\windows\\path\\";
+          const config = cloneDeep(
+            webpackConfigurations[webpackVersion]['methodName_pluginConf']
+          );
+          config.output.publicPath = 'C:\\windows\\path\\';
 
-        appendChildTrap = ({ src }) =>
-          assert.ok(src.match(/C:\\windows\\path\\.*/));
+          appendChildTrap = ({ src }) =>
+            assert.ok(src.match(/C:\\windows\\path\\.*/));
 
-        await compile(
-          require(`../${webpackVersion}/node_modules/webpack`),
-          config,
-          new memoryFS()
-        );
-      });
-      it("uses default windows public path when variableName is undefined", async () => {
-        console.error = () => {};
-        global.publicPath = undefined;
+          await compile(
+            require(`../${webpackVersion}/node_modules/webpack`),
+            config,
+            new memoryFS()
+          );
+        });
+        it('uses default windows public path when variableName is undefined', async () => {
+          console.error = () => {};
+          global.publicPath = undefined;
 
-        const config = cloneDeep(
-          webpackConfigurations[webpackVersion]["variableName_pluginConf"]
-        );
-        config.output.publicPath = "C:\\windows\\path\\";
+          const config = cloneDeep(
+            webpackConfigurations[webpackVersion]['variableName_pluginConf']
+          );
+          config.output.publicPath = 'C:\\windows\\path\\';
 
-        appendChildTrap = ({ src }) =>
-          assert.ok(src.match(/C:\\windows\\path\\.*/));
+          appendChildTrap = ({ src }) =>
+            assert.ok(src.match(/C:\\windows\\path\\.*/));
 
-        await compile(
-          require(`../${webpackVersion}/node_modules/webpack`),
-          config,
-          new memoryFS()
-        );
-      });
-      it("replaces with result of replaceSrcMethodName", async () => {
-        global.getSrc = original => `newSrc/${original}`;
-        appendChildTrap = ({ src }) => {
-          assert.strictEqual(src.split("/")[0], "newSrc");
-          assert.strictEqual(src.split("/")[1], "originalPublicPath");
-        };
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "replaceSrcMethodName_pluginConf"
-        );
-      });
-      it("uses default public path when replaceSrcMethodName doesn't return a string", async () => {
-        let errorCalled = false;
-        console.error = () => {
-          errorCalled = true;
-        };
-        global.getSrc = original => null;
-        appendChildTrap = ({ src }) => {
-          assert.strictEqual(src.split("/")[0], "originalPublicPath");
-          assert.strictEqual(errorCalled, true);
-        };
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "replaceSrcMethodName_pluginConf"
-        );
-      });
-      it("uses default public path when replaceSrcMethodName is undefined", async () => {
-        console.error = () => {};
-        appendChildTrap = ({ src }) => {
-          assert.strictEqual(src.split("/")[0], "originalPublicPath");
-        };
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "replaceSrcMethodName_pluginConf"
-        );
-      });
-      it("replaces with result of methodName > replaceSrcMethodName", async () => {
-        global.getPublicPath = () => "newPublicPath/";
-        global.getSrc = original => `newSrc/${original}`;
-        appendChildTrap = ({ src }) => {
-          assert.strictEqual(src.split("/")[0], "newSrc");
-          assert.strictEqual(src.split("/")[1], "newPublicPath");
-        };
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "replaceSrcMethodName_methodName_pluginConf"
-        );
-      });
-      it("replaces with result of variableName > replaceSrcMethodName", async () => {
-        global.publicPath = "newPublicPath/";
-        global.getSrc = original => `newSrc/${original}`;
-        appendChildTrap = ({ src }) => {
-          assert.strictEqual(src.split("/")[0], "newSrc");
-          assert.strictEqual(src.split("/")[1], "newPublicPath");
-        };
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "replaceSrcMethodName_variableName_pluginConf"
-        );
-      });
-      it("replaces with result of path > replaceSrcMethodName", async () => {
-        global.getSrc = original => `newSrc/${original}`;
-        appendChildTrap = ({ src }) => {
-          assert.strictEqual(src.split("/")[0], "newSrc");
-          assert.strictEqual(src.split("/")[1], "staticPath");
-        };
-        await compileWithWebpackVersion(
-          webpackVersion,
-          "replaceSrcMethodName_path_pluginConf"
-        );
-      });
-      it("replaces with result of methodName together with HTMLWebPack plugin", async () => {
-        global.getPublicPath = () => "newPublicPath/";
+          await compile(
+            require(`../${webpackVersion}/node_modules/webpack`),
+            config,
+            new memoryFS()
+          );
+        });
+        it('replaces with result of replaceSrcMethodName', async () => {
+          global.getSrc = (original) => `newSrc/${original}`;
+          appendChildTrap = ({ src }) => {
+            assert.strictEqual(src.split('/')[0], 'newSrc');
+            assert.strictEqual(src.split('/')[1], 'originalPublicPath');
+          };
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'replaceSrcMethodName_pluginConf'
+          );
+        });
+        it("uses default public path when replaceSrcMethodName doesn't return a string", async () => {
+          let errorCalled = false;
+          console.error = () => {
+            errorCalled = true;
+          };
+          global.getSrc = (original) => null;
+          appendChildTrap = ({ src }) => {
+            assert.strictEqual(src.split('/')[0], 'originalPublicPath');
+            assert.strictEqual(errorCalled, true);
+          };
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'replaceSrcMethodName_pluginConf'
+          );
+        });
+        it('uses default public path when replaceSrcMethodName is undefined', async () => {
+          console.error = () => {};
+          appendChildTrap = ({ src }) => {
+            assert.strictEqual(src.split('/')[0], 'originalPublicPath');
+          };
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'replaceSrcMethodName_pluginConf'
+          );
+        });
+        it('replaces with result of methodName > replaceSrcMethodName', async () => {
+          global.getPublicPath = () => 'newPublicPath/';
+          global.getSrc = (original) => `newSrc/${original}`;
+          appendChildTrap = ({ src }) => {
+            assert.strictEqual(src.split('/')[0], 'newSrc');
+            assert.strictEqual(src.split('/')[1], 'newPublicPath');
+          };
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'replaceSrcMethodName_methodName_pluginConf'
+          );
+        });
+        it('replaces with result of variableName > replaceSrcMethodName', async () => {
+          global.publicPath = 'newPublicPath/';
+          global.getSrc = (original) => `newSrc/${original}`;
+          appendChildTrap = ({ src }) => {
+            assert.strictEqual(src.split('/')[0], 'newSrc');
+            assert.strictEqual(src.split('/')[1], 'newPublicPath');
+          };
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'replaceSrcMethodName_variableName_pluginConf'
+          );
+        });
+        it('replaces with result of path > replaceSrcMethodName', async () => {
+          global.getSrc = (original) => `newSrc/${original}`;
+          appendChildTrap = ({ src }) => {
+            assert.strictEqual(src.split('/')[0], 'newSrc');
+            assert.strictEqual(src.split('/')[1], 'staticPath');
+          };
+          await compileWithWebpackVersion(
+            webpackVersion,
+            'replaceSrcMethodName_path_pluginConf'
+          );
+        });
+        it('replaces with result of methodName together with HTMLWebPack plugin', async () => {
+          global.getPublicPath = () => 'newPublicPath/';
 
-        appendChildTrap = ({ src }) => {
-          assert.strictEqual(src.split("/")[0], "newPublicPath");
-        };
+          appendChildTrap = ({ src }) => {
+            assert.strictEqual(src.split('/')[0], 'newPublicPath');
+          };
 
-        // html-webpack-plugn requires webpack (and embedded mplugins) relatively to its location
-        const htmlWebpackPlugin = require(`../${webpackVersion}/node_modules/html-webpack-plugin/`);
-        const config = cloneDeep(
-          webpackConfigurations[webpackVersion]["methodName_pluginConf"]
-        );
-        config.plugins.unshift(new htmlWebpackPlugin());
+          // html-webpack-plugn requires webpack (and embedded mplugins) relatively to its location
+          const htmlWebpackPlugin = require(`../${webpackVersion}/node_modules/html-webpack-plugin/`);
+          const config = cloneDeep(
+            webpackConfigurations[webpackVersion]['methodName_pluginConf']
+          );
+          config.plugins.unshift(new htmlWebpackPlugin());
 
-        await compile(
-          require(`../${webpackVersion}/node_modules/webpack`),
-          config,
-          new memoryFS()
-        );
-        global.getPublicPath = undefined;
-      });
-      it("replaces with result of variableName together with HTMLWebPack plugin", async () => {
-        global.publicPath = "newPublicPath/";
+          await compile(
+            require(`../${webpackVersion}/node_modules/webpack`),
+            config,
+            new memoryFS()
+          );
+          global.getPublicPath = undefined;
+        });
+        it('replaces with result of variableName together with HTMLWebPack plugin', async () => {
+          global.publicPath = 'newPublicPath/';
 
-        appendChildTrap = ({ src }) => {
-          assert.strictEqual(src.split("/")[0], "newPublicPath");
-        };
+          appendChildTrap = ({ src }) => {
+            assert.strictEqual(src.split('/')[0], 'newPublicPath');
+          };
 
-        // html-webpack-plugn requires webpack (and embedded mplugins) relatively to its location
-        const htmlWebpackPlugin = require(`../${webpackVersion}/node_modules/html-webpack-plugin/`);
-        const config = cloneDeep(
-          webpackConfigurations[webpackVersion]["variableName_pluginConf"]
-        );
-        config.plugins.unshift(new htmlWebpackPlugin());
+          // html-webpack-plugn requires webpack (and embedded mplugins) relatively to its location
+          const htmlWebpackPlugin = require(`../${webpackVersion}/node_modules/html-webpack-plugin/`);
+          const config = cloneDeep(
+            webpackConfigurations[webpackVersion]['variableName_pluginConf']
+          );
+          config.plugins.unshift(new htmlWebpackPlugin());
 
-        await compile(
-          require(`../${webpackVersion}/node_modules/webpack`),
-          config,
-          new memoryFS()
-        );
-      });
-      it("replaces with result of replaceSrcMethodName together with HTMLWebPack plugin", async () => {
-        global.getSrc = original => `newSrc/${original}`;
+          await compile(
+            require(`../${webpackVersion}/node_modules/webpack`),
+            config,
+            new memoryFS()
+          );
+        });
+        it('replaces with result of replaceSrcMethodName together with HTMLWebPack plugin', async () => {
+          global.getSrc = (original) => `newSrc/${original}`;
 
-        appendChildTrap = ({ src }) => {
-          assert.strictEqual(src.split("/")[0], "newSrc");
-        };
+          appendChildTrap = ({ src }) => {
+            assert.strictEqual(src.split('/')[0], 'newSrc');
+          };
 
-        // html-webpack-plugn requires webpack (and embedded mplugins) relatively to its location
-        const htmlWebpackPlugin = require(`../${webpackVersion}/node_modules/html-webpack-plugin/`);
-        const config = cloneDeep(
-          webpackConfigurations[webpackVersion][
-            "replaceSrcMethodName_pluginConf"
-          ]
-        );
-        config.plugins.unshift(new htmlWebpackPlugin());
+          // html-webpack-plugn requires webpack (and embedded mplugins) relatively to its location
+          const htmlWebpackPlugin = require(`../${webpackVersion}/node_modules/html-webpack-plugin/`);
+          const config = cloneDeep(
+            webpackConfigurations[webpackVersion][
+              'replaceSrcMethodName_pluginConf'
+            ]
+          );
+          config.plugins.unshift(new htmlWebpackPlugin());
 
-        await compile(
-          require(`../${webpackVersion}/node_modules/webpack`),
-          config,
-          new memoryFS()
-        );
-      });
-      it("suppresses errors when methodName is undefined", async () => {
-        let errorCalled = false;
-        console.error = () => {
-          errorCalled = true;
-        };
-        const config = cloneDeep(webpackConfigurations[webpackVersion].default);
-        config.plugins = [
-          new WebpackRequireFrom({
-            suppressErrors: true,
-            methodName: "getPublicPath"
-          })
-        ];
+          await compile(
+            require(`../${webpackVersion}/node_modules/webpack`),
+            config,
+            new memoryFS()
+          );
+        });
+        it('suppresses errors when methodName is undefined', async () => {
+          let errorCalled = false;
+          console.error = () => {
+            errorCalled = true;
+          };
+          const config = cloneDeep(
+            webpackConfigurations[webpackVersion].default
+          );
+          config.plugins = [
+            new WebpackRequireFrom({
+              suppressErrors: true,
+              methodName: 'getPublicPath',
+            }),
+          ];
 
-        await compile(
-          require(`../${webpackVersion}/node_modules/webpack`),
-          config,
-          new memoryFS()
-        );
+          await compile(
+            require(`../${webpackVersion}/node_modules/webpack`),
+            config,
+            new memoryFS()
+          );
 
-        assert.strictEqual(errorCalled, false);
-      });
-      it("suppresses errors when variableName is undefined", async () => {
-        let errorCalled = false;
-        console.error = () => {
-          errorCalled = true;
-        };
+          assert.strictEqual(errorCalled, false);
+        });
+        it('suppresses errors when variableName is undefined', async () => {
+          let errorCalled = false;
+          console.error = () => {
+            errorCalled = true;
+          };
 
-        const config = cloneDeep(webpackConfigurations[webpackVersion].default);
-        config.plugins = [
-          new WebpackRequireFrom({
-            suppressErrors: true,
-            variableName: "publicPath"
-          })
-        ];
+          const config = cloneDeep(
+            webpackConfigurations[webpackVersion].default
+          );
+          config.plugins = [
+            new WebpackRequireFrom({
+              suppressErrors: true,
+              variableName: 'publicPath',
+            }),
+          ];
 
-        await compile(
-          require(`../${webpackVersion}/node_modules/webpack`),
-          config,
-          new memoryFS()
-        );
+          await compile(
+            require(`../${webpackVersion}/node_modules/webpack`),
+            config,
+            new memoryFS()
+          );
 
-        assert.strictEqual(errorCalled, false);
-      });
+          assert.strictEqual(errorCalled, false);
+        });
 
-      it("suppresses errors when replaceSrcMethodName is undefined", async () => {
-        let errorCalled = false;
-        console.error = _ => {
-          errorCalled = true;
-        };
+        it('suppresses errors when replaceSrcMethodName is undefined', async () => {
+          let errorCalled = false;
+          console.error = (_) => {
+            errorCalled = true;
+          };
 
-        const config = cloneDeep(webpackConfigurations[webpackVersion].default);
-        config.plugins = [
-          new WebpackRequireFrom({
-            supressErrors: true,
-            replaceSrcMethodName: "getSrc"
-          })
-        ];
-        await compile(
-          require(`../${webpackVersion}/node_modules/webpack`),
-          config,
-          new memoryFS()
-        );
+          const config = cloneDeep(
+            webpackConfigurations[webpackVersion].default
+          );
+          config.plugins = [
+            new WebpackRequireFrom({
+              supressErrors: true,
+              replaceSrcMethodName: 'getSrc',
+            }),
+          ];
+          await compile(
+            require(`../${webpackVersion}/node_modules/webpack`),
+            config,
+            new memoryFS()
+          );
 
-        assert.strictEqual(errorCalled, false);
-      });
-    })
+          assert.strictEqual(errorCalled, false);
+        });
+      })
   );
 });
