@@ -1,9 +1,9 @@
 const {
   PLUGIN_NAME,
   REPLACE_SRC_OPTION_NAME,
-  SUPPRESS_ERRORS_OPTION_NAME
-} = require("./constants");
-const { getHook, isLegacyTapable } = require("./helpers");
+  SUPPRESS_ERRORS_OPTION_NAME,
+} = require('./constants');
+const { getHook, isLegacyTapable } = require('./helpers');
 
 const {
   buildSrcReplaceCodeWebworker,
@@ -11,13 +11,13 @@ const {
   buildSrcReplaceCode,
   buildMethodCode,
   buildStringCode,
-  buildVariableCode
-} = require("./codeBuilders");
+  buildVariableCode,
+} = require('./codeBuilders');
 
 class WebpackRequireFrom {
   constructor(userOptions) {
     // temp fix to support typo in option name
-    if (userOptions && typeof userOptions.supressErrors !== "undefined") {
+    if (userOptions && typeof userOptions.supressErrors !== 'undefined') {
       userOptions[SUPPRESS_ERRORS_OPTION_NAME] = userOptions.supressErrors;
     }
 
@@ -31,8 +31,8 @@ class WebpackRequireFrom {
     this.exclusiveOptionLength = [
       this.options.methodName,
       this.options.path,
-      this.options.variableName
-    ].filter(_ => _).length;
+      this.options.variableName,
+    ].filter((_) => _).length;
     if (this.exclusiveOptionLength && this.exclusiveOptionLength !== 1) {
       throw new Error(
         `${PLUGIN_NAME}: Specify either "methodName", "path" or "variableName", not two or more. See https://github.com/agoldis/webpack-require-from#configuration`
@@ -41,7 +41,7 @@ class WebpackRequireFrom {
   }
 
   apply(compiler) {
-    getHook(compiler, "compilation")(this.compilationHook.bind(this));
+    getHook(compiler, 'compilation')(this.compilationHook.bind(this));
   }
 
   compilationHook(compilation) {
@@ -49,12 +49,15 @@ class WebpackRequireFrom {
 
     // only replace the public path if one of methodName, path or variableName was set
     if (this.exclusiveOptionLength > 0) {
-      this.activateReplacePublicPath(mainTemplate);
+      this.activateReplacePublicPath(
+        compilation.outputOptions.publicPath,
+        mainTemplate
+      );
     }
 
     if (
       this.options[REPLACE_SRC_OPTION_NAME] ||
-      this.options["webWorkerModifier"]
+      this.options['webWorkerModifier']
     ) {
       this.activateReplaceSrc(mainTemplate);
     }
@@ -64,8 +67,8 @@ class WebpackRequireFrom {
     if (isLegacyTapable(mainTemplate)) {
       getHook(
         mainTemplate,
-        "jsonp-script"
-      )(source =>
+        'jsonp-script'
+      )((source) =>
         buildLegacySrcReplaceCode(
           source,
           this.options[REPLACE_SRC_OPTION_NAME],
@@ -74,13 +77,13 @@ class WebpackRequireFrom {
       );
     } else {
       const isWebWorker = mainTemplate.hooks.requireEnsure.taps.some(
-        tap => tap.name === "WebWorkerMainTemplatePlugin"
+        (tap) => tap.name === 'WebWorkerMainTemplatePlugin'
       );
       if (isWebWorker) {
         getHook(
           mainTemplate,
-          "local-vars"
-        )(source =>
+          'local-vars'
+        )((source) =>
           buildSrcReplaceCodeWebworker(
             source,
             this.options[REPLACE_SRC_OPTION_NAME],
@@ -90,8 +93,8 @@ class WebpackRequireFrom {
       } else {
         getHook(
           mainTemplate,
-          "local-vars"
-        )(source =>
+          'local-vars'
+        )((source) =>
           buildSrcReplaceCode(
             source,
             this.options[REPLACE_SRC_OPTION_NAME],
@@ -102,14 +105,12 @@ class WebpackRequireFrom {
     }
   }
 
-  activateReplacePublicPath(mainTemplate) {
+  activateReplacePublicPath(defaultPublicPath, mainTemplate) {
     getHook(
       mainTemplate,
-      "require-extensions"
+      'require-extensions'
     )((source, chunk, hash) => {
-      const defaultPublicPath = mainTemplate.getPublicPath({
-        hash
-      });
+      const __webpack_require__ = '__webpack_require__';
 
       let getterBody;
       if (this.options.variableName) {
@@ -131,12 +132,18 @@ class WebpackRequireFrom {
       return [
         source,
         `// ${PLUGIN_NAME}`,
-        "Object.defineProperty(" + mainTemplate.requireFn + ', "p", {',
-        "  get: function () {",
+        __webpack_require__ +
+          ' && Object.defineProperty(' +
+          __webpack_require__ +
+          ', "p", {',
+        '  get: function () {',
         getterBody,
-        " }",
-        "});"
-      ].join("\n");
+        ' },',
+        '  set: function (newPublicPath) {',
+        '    console.warn(`WebpackRequireFrom: something is trying to override webpack public path. Ignoring the new value "${newPublicPath}".`);',
+        '}',
+        '});',
+      ].join('\n');
     });
   }
 }

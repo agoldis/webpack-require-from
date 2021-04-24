@@ -41,6 +41,7 @@ const createGlobalEnv = function () {
 const compile = (webpackEngine, config, fs) => {
   const compiler = webpackEngine(cloneDeep(config));
   compiler.outputFileSystem = fs;
+
   return new Promise((resolve, reject) => {
     compiler.run((err, stats) => {
       if (err || stats.hasErrors()) {
@@ -147,7 +148,6 @@ describe('webpack-require-from', function () {
 
   Array.of('webpack2', 'webpack3', 'webpack4', 'webpack5').map(
     (webpackVersion) =>
-      // Array.of('webpack5').map((webpackVersion) =>
       describe(webpackVersion, () => {
         it('does nothing when config is empty', async () => {
           appendChildTrap = ({ src }) =>
@@ -381,6 +381,7 @@ describe('webpack-require-from', function () {
           );
           global.getPublicPath = undefined;
         });
+
         it('replaces with result of variableName together with HTMLWebPack plugin', async () => {
           global.publicPath = 'newPublicPath/';
 

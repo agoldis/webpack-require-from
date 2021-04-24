@@ -1,6 +1,6 @@
-const { PLUGIN_NAME } = require("./constants");
+const { PLUGIN_NAME } = require('./constants');
 
-exports.buildLegacySrcReplaceCode = function(
+exports.buildLegacySrcReplaceCode = function (
   source,
   methodName,
   shouldSupressErrors = false
@@ -32,11 +32,11 @@ exports.buildLegacySrcReplaceCode = function(
     `  }`,
     `}`,
     `var script = document.createElement('script');`,
-    `Object.keys(originalScript).forEach(function (key) { script[key] = originalScript[key]; });`
-  ].join("\n");
+    `Object.keys(originalScript).forEach(function (key) { script[key] = originalScript[key]; });`,
+  ].join('\n');
 };
 
-exports.buildSrcReplaceCode = function(
+exports.buildSrcReplaceCode = function (
   source,
   methodName,
   shouldSupressErrors = false
@@ -44,6 +44,7 @@ exports.buildSrcReplaceCode = function(
   return [
     source,
     `// ${PLUGIN_NAME} - monkey-patching`,
+    `\n`,
     `if (typeof jsonpScriptSrc === 'function') {`,
     `  var original_jsonpScriptSrc = jsonpScriptSrc;`,
     `  function patchJsonpScriptSrc () {`,
@@ -64,11 +65,11 @@ exports.buildSrcReplaceCode = function(
     `    }`,
     `  }`,
     `  jsonpScriptSrc = patchJsonpScriptSrc`,
-    `}`
-  ].join("\n");
+    `}`,
+  ].join('\n');
 };
 
-exports.buildSrcReplaceCodeWebworker = function(source, methodName) {
+exports.buildSrcReplaceCodeWebworker = function (source, methodName) {
   return [
     source,
     ``,
@@ -79,15 +80,15 @@ exports.buildSrcReplaceCodeWebworker = function(source, methodName) {
     `    original(${methodName}.apply(this, arguments));`,
     `  }`,
     `  importScripts  = patch;`,
-    `}`
-  ].join("\n");
+    `}`,
+  ].join('\n');
 };
 
-exports.buildStringCode = function(pathString) {
+exports.buildStringCode = function (pathString) {
   return `return "${pathString}";`;
 };
 
-exports.buildMethodCode = function(
+exports.buildMethodCode = function (
   methodName,
   defaultPublicPath,
   shouldSupressErrors = false
@@ -102,12 +103,12 @@ exports.buildMethodCode = function(
     `  if (!${shouldSupressErrors}) {`,
     `    console.error(e);`,
     `  }`,
-    `  return "${defaultPublicPath.replace(/\\/g, "\\\\")}";`,
-    `}`
-  ].join("\n");
+    `  return "${defaultPublicPath.replace(/\\/g, '\\\\')}";`,
+    `}`,
+  ].join('\n');
 };
 
-exports.buildVariableCode = function(
+exports.buildVariableCode = function (
   variableName,
   defaultPublicPath,
   shouldSupressErrors = false
@@ -122,7 +123,7 @@ exports.buildVariableCode = function(
     `  if (!${shouldSupressErrors}) {`,
     `    console.error(e);`,
     `  }`,
-    `  return "${defaultPublicPath.replace(/\\/g, "\\\\")}";`,
-    `}`
-  ].join("\n");
+    `  return "${defaultPublicPath.replace(/\\/g, '\\\\')}";`,
+    `}`,
+  ].join('\n');
 };
