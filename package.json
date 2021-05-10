@@ -1,6 +1,6 @@
 {
   "name": "webpack-require-from",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "description": "Webpack plugin that allows to configure path or URL for fetching dynamic imports",
   "main": "index.js",
   "keywords": [
