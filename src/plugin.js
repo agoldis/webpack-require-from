@@ -140,7 +140,7 @@ class WebpackRequireFrom {
         getterBody,
         ' },',
         '  set: function (newPublicPath) {',
-        '    console.warn(`WebpackRequireFrom: something is trying to override webpack public path. Ignoring the new value "${newPublicPath}".`);',
+        '    console.warn("WebpackRequireFrom: something is trying to override webpack public path. Ignoring the new value" + newPublicPath  + ".");',
         '}',
         '});',
       ].join('\n');
