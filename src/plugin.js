@@ -132,7 +132,7 @@ class WebpackRequireFrom {
       return [
         source,
         `// ${PLUGIN_NAME}`,
-        __webpack_require__ +
+        'typeof ' + __webpack_require__ + ' !== "undefined"' +
           ' && Object.defineProperty(' +
           __webpack_require__ +
           ', "p", {',
