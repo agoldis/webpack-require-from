@@ -21,7 +21,7 @@
     "test-slim": "mocha --exit ./test/common/*.test.js"
   },
   "peerDependencies": {
-    "tapable": "^1.0.0"
+    "tapable": "^2.2.0"
   },
   "repository": "https://github.com/agoldis/webpack-require-from.git",
   "author": "Andrew Goldis",
@@ -31,6 +31,6 @@
     "memfs": "^3.2.0",
     "memory-fs": "^0.4.1",
     "mocha": "^5.2.0",
-    "tapable": "^1.0.0"
+    "tapable": "^2.2.0"
   }
 }
